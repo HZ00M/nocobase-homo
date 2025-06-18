@@ -7,104 +7,68 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import React, { useCallback, useRef, useState, useEffect } from 'react';
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Handle,
-  Position,
-  NodeProps,
-  Node,
-  Edge,
-  OnNodesChange,
-  NodeChange,
-} from 'reactflow';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import ReactFlow, { addEdge, Node, Edge, NodeChange, OnNodesChange } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useResource } from '@nocobase/client';
 import { useFieldSchema } from '@formily/react';
-import { message } from 'antd';
-
-const TaskNode: React.FC<NodeProps> = ({ data, isConnectable, id }) => {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <div style={cardStyle}>
-      <Handle type="target" position={Position.Top} isConnectable={isConnectable} />
-      <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: 8 }}>{data.label}</div>
-      {expanded && (
-        <div style={{ fontSize: '12px', color: '#333', marginBottom: 8, lineHeight: 1.4 }}>
-          <div>
-            <strong>任务类型：</strong>
-            {data.taskType}
-          </div>
-          <div>
-            <strong>开始时间：</strong>
-            {data.startTime}
-          </div>
-          <div>
-            <strong>结束时间：</strong>
-            {data.endTime}
-          </div>
-          <div>
-            <strong>父任务ID：</strong>
-            {data.parentId || '无'}
-          </div>
-          {data.kvs &&
-            Object.entries(data.kvs).map(([key, value]) => (
-              <div key={key}>
-                <strong>{key}：</strong>
-                {value}
-              </div>
-            ))}
-        </div>
-      )}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        <button style={buttonStyle} onClick={() => data.onAddChild?.(id)}>
-          添加子任务
-        </button>
-        <button style={secondaryButtonStyle} onClick={() => setExpanded(!expanded)}>
-          {expanded ? '收起' : '展开'}
-        </button>
-        <button style={{ ...secondaryButtonStyle, backgroundColor: '#e74c3c' }} onClick={() => data.onDelete?.(id)}>
-          删除
-        </button>
-      </div>
-      <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
-    </div>
-  );
-};
-
+import { Form, Input, message, Modal } from 'antd';
+import { TaskMetaSelector } from './TaskMetaSelector';
+import { EditTaskModal } from './EditTaskModal';
+import { TaskNode } from './TaskNode';
+import { useTaskNodes } from './useTaskNodes';
+import { TemplateSelector } from './TemplateSelector';
 const nodeTypes = { stacked: TaskNode };
-
-const taskTemplates = [
-  { label: '主线任务', taskType: '主线', kvs: { 目标: '完成主任务', 奖励: '100金币' } },
-  { label: '支线任务', taskType: '支线', kvs: { 目标: '完成支线', 奖励: '50金币' } },
-];
+import type { TaskMeta, TaskData } from './types';
 
 export const TaskDesigner: React.FC = () => {
+  const {
+    nodes,
+    setNodes,
+    edges,
+    setEdges,
+    addNewTask,
+    deleteNode,
+    onNodesChange,
+    onEdgesChange,
+    layoutPyramid,
+    onNodeSelect,
+    getEnhancedNodes,
+    importTemplateById,
+    resetNodeInfo,
+    onConnect,
+  } = useTaskNodes([], []);
+
   const flowResource = useResource('act_task_flow');
   const schema = useFieldSchema();
   const schemaUid = schema?.['x-uid'];
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [editingNode, setEditingNode] = useState<Node | null>(null);
+  const [editVisible, setEditVisible] = useState(false);
   const [jsonText, setJsonText] = useState('');
+  const [templateList, setTemplateList] = useState<any[]>([]);
+  const [savingNewTemplate, setSavingNewTemplate] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetchFlow = async () => {
-      const { data } = await flowResource.get({ filter: { id: schemaUid } });
-      if (data?.data?.nodes) setNodes(data.data.nodes);
-      if (data?.data?.edges) setEdges(data.data.edges);
+    // const fetchFlow = async () => {
+    //   const { data } = await flowResource.get({ filter: { id: schemaUid } });
+    //   if (data?.data?.nodes) setNodes(data.data.nodes);
+    //   if (data?.data?.edges) setEdges(data.data.edges);
+    // };
+    // if (schemaUid) fetchFlow();
+
+    const fetchTemplates = async () => {
+      const { data } = await flowResource.list({
+        filter: {},
+        pageSize: 100,
+        appends: [],
+      });
+      setTemplateList(data?.data?.map((t) => ({ id: t.id, title: t.title })) ?? []);
     };
-    if (schemaUid) fetchFlow();
+    fetchTemplates();
   }, [schemaUid]);
-
-  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
-
   const handleNodesChange: OnNodesChange = (changes: NodeChange[]) => {
     const snap = (val: number) => Math.round(val / 50) * 50;
     const snapped = changes.map((change) => {
@@ -116,100 +80,54 @@ export const TaskDesigner: React.FC = () => {
     onNodesChange(snapped);
   };
 
-  const layoutPyramid = (nodes: Node[]) => {
-    const gapX = 280;
-    const gapY = 220;
-    const childrenMap = new Map<string, Node[]>();
-    nodes.forEach((node) => {
-      const parentId = node.data.parentId;
-      if (parentId) {
-        if (!childrenMap.has(parentId)) childrenMap.set(parentId, []);
-        childrenMap.get(parentId)!.push(node);
-      }
-    });
+  const [form] = Form.useForm();
+  // 打开弹窗
+  const openNewTemplateModal = () => {
+    form.resetFields();
+    setModalVisible(true);
+  };
+  // 关闭弹窗
+  const closeNewTemplateModal = () => {
+    setModalVisible(false);
+  };
+  // 保存新模板
+  const handleSaveNewTemplate = async () => {
+    try {
+      const values = await form.validateFields();
+      setSavingNewTemplate(true);
 
-    const layoutSubtree = (node: Node, depth = 0, startX = 0): number => {
-      const children = childrenMap.get(node.id) || [];
-      if (children.length === 0) {
-        node.position = { x: startX, y: depth * gapY };
-        return gapX;
-      }
-      let totalWidth = 0;
-      const childXStart = startX;
-      children.forEach((child) => {
-        const subtreeWidth = layoutSubtree(child, depth + 1, childXStart + totalWidth);
-        totalWidth += subtreeWidth;
+      const newId = `tmpl_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+
+      const payload = {
+        id: newId,
+        title: values.title,
+        description: values.description || '',
+        nodes,
+        edges,
+      };
+
+      await flowResource.create({ values: payload });
+
+      // 刷新模板列表
+      const { data } = await flowResource.list({
+        filter: {},
+        pageSize: 100,
       });
-      const centerX = childXStart + totalWidth / 2 - gapX / 2;
-      node.position = { x: centerX, y: depth * gapY };
-      return totalWidth;
-    };
+      setTemplateList(data?.data?.map((t) => ({ id: t.id, title: t.title })) ?? []);
 
-    const roots = nodes.filter((n) => !n.data.parentId);
-    let cursorX = 0;
-    roots.forEach((root) => {
-      const subtreeWidth = layoutSubtree(root, 0, cursorX);
-      cursorX += subtreeWidth + gapX;
-    });
-    return [...nodes];
+      message.success('保存为新模板成功');
+      setModalVisible(false);
+    } catch (error) {
+      if (error.errorFields) {
+        // 表单校验错误，忽略
+      } else {
+        console.error(error);
+        message.error('保存失败，请重试');
+      }
+    } finally {
+      setSavingNewTemplate(false);
+    }
   };
-
-  const addChildNode = (parentId: string) => {
-    const parent = nodes.find((n) => n.id === parentId);
-    if (!parent) return;
-    const children = nodes.filter((n) => n.data.parentId === parentId);
-    const newId = `${Date.now()}`;
-    const newNode: Node = {
-      id: newId,
-      type: 'stacked',
-      position: { x: parent.position.x, y: parent.position.y + (children.length + 1) * 150 },
-      data: {
-        label: `子任务${children.length + 1}`,
-        taskType: '支线',
-        startTime: '2025-05-11',
-        endTime: '2025-05-15',
-        parentId,
-        kvs: { 条件: '依赖父任务' },
-        onAddChild: addChildNode,
-      },
-    };
-    const newEdge: Edge = { id: `e${parentId}-${newId}`, source: parentId, target: newId, animated: true };
-    setNodes((nds) => layoutPyramid([...nds, newNode]));
-    setEdges((eds) => [...eds, newEdge]);
-  };
-
-  const addNewTask = (template) => {
-    const newId = `${Date.now()}`;
-    const newNode: Node = {
-      id: newId,
-      type: 'stacked',
-      position: { x: 100, y: 100 },
-      data: {
-        label: template.label,
-        taskType: template.taskType,
-        startTime: '2025-06-01',
-        endTime: '2025-06-15',
-        parentId: '',
-        kvs: template.kvs,
-        onAddChild: addChildNode,
-      },
-    };
-    setNodes((nds) => layoutPyramid([...nds, newNode]));
-  };
-
-  const deleteNode = (id: string) => {
-    setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
-    setNodes((nds) => layoutPyramid(nds.filter((n) => n.id !== id)));
-  };
-
-  const enhancedNodes = nodes.map((node) => ({
-    ...node,
-    data: {
-      ...node.data,
-      onAddChild: addChildNode,
-      onDelete: deleteNode,
-    },
-  }));
 
   const exportToJson = () => {
     const flow = { nodes, edges };
@@ -241,8 +159,6 @@ export const TaskDesigner: React.FC = () => {
         nodes,
         edges,
       };
-
-      // 检查是否存在已有记录
       let exists = false;
       try {
         await flowResource.get({ filter: { id: schemaUid } });
@@ -250,13 +166,11 @@ export const TaskDesigner: React.FC = () => {
       } catch (e) {
         if (e?.response?.status !== 404) throw e;
       }
-
       if (exists) {
         await flowResource.update({ filter: { id: schemaUid }, values: payload });
       } else {
         await flowResource.create({ values: payload });
       }
-
       message.success('保存成功');
     } catch (err) {
       console.error('保存失败', err);
@@ -265,20 +179,64 @@ export const TaskDesigner: React.FC = () => {
       setSaving(false);
     }
   };
-
+  // 这里新增清空画布函数
+  const clearCanvas = () => {
+    Modal.confirm({
+      title: '确认清空画布？',
+      content: '此操作将删除所有任务节点和连接，无法撤销。',
+      okText: '确认',
+      cancelText: '取消',
+      onOk: () => {
+        resetNodeInfo();
+        message.info('画布已清空');
+      },
+    });
+  };
   return (
     <div style={{ display: 'flex', height: 800 }}>
-      <div style={{ width: 200, background: '#f5f5f5', padding: 10 }}>
+      <div style={{ width: 240, background: '#f5f5f5', padding: 10 }}>
         <h4>添加任务</h4>
-        {taskTemplates.map((tpl, index) => (
-          <button
-            key={index}
-            style={{ ...buttonStyle, marginBottom: 10, width: '100%' }}
-            onClick={() => addNewTask(tpl)}
-          >
-            {tpl.label}
-          </button>
-        ))}
+        <TaskMetaSelector
+          onSelect={(selectedNodeId, taskMeta) => {
+            console.log('selectedNodeId :', selectedNodeId);
+            console.log('选择的任务元数据 :', taskMeta);
+            addNewTask(selectedNodeId, taskMeta);
+          }}
+        />
+        <h4>流程模板列表</h4>
+        <TemplateSelector templates={templateList} onSelect={importTemplateById} />
+        <hr />
+        {/* 新增按钮 */}
+        <button
+          onClick={openNewTemplateModal}
+          style={{
+            width: '100%',
+            marginTop: 12,
+            marginBottom: 12,
+            backgroundColor: '#1890ff',
+            color: '#fff',
+            border: 'none',
+            padding: '6px 12px',
+            cursor: 'pointer',
+          }}
+        >
+          保存为新模板
+        </button>
+        {/* 新增按钮 */}
+        <button
+          onClick={clearCanvas}
+          style={{
+            width: '100%',
+            backgroundColor: '#f5222d',
+            color: '#fff',
+            border: 'none',
+            padding: '8px 12px',
+            borderRadius: 4,
+            cursor: 'pointer',
+          }}
+        >
+          清空画布
+        </button>
         <hr />
         <button onClick={exportToJson} style={{ ...buttonStyle, width: '100%', marginBottom: 6 }}>
           导出流程图 JSON
@@ -304,27 +262,61 @@ export const TaskDesigner: React.FC = () => {
       </div>
       <div ref={reactFlowWrapper} style={{ flex: 1, position: 'relative' }}>
         <ReactFlow
-          nodes={enhancedNodes}
+          nodes={getEnhancedNodes()}
           edges={edges}
           onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
+          onNodeClick={(event, node) => {
+            event.preventDefault();
+            onNodeSelect(node.id);
+          }}
+          onNodeDoubleClick={(event, node) => {
+            setEditingNode(node);
+            setEditVisible(true);
+          }}
+          onPaneClick={() => onNodeSelect(null)} // 👈 点击空白区域取消选中
           fitView
           attributionPosition="bottom-left"
         />
       </div>
+      {/* 👇 编辑任务弹窗，写在 ReactFlow 外 */}
+      <EditTaskModal
+        visible={editVisible}
+        node={editingNode}
+        onSave={(updatedNode) => {
+          setNodes((nds) => nds.map((n) => (n.id === updatedNode.id ? updatedNode : n)));
+          setEditVisible(false);
+          setEditingNode(null);
+        }}
+        onCancel={() => {
+          setEditVisible(false);
+          setEditingNode(null);
+        }}
+      />
+      {/* 新增保存为新模板Modal */}
+      <Modal
+        title="保存为新模板"
+        open={modalVisible}
+        onCancel={closeNewTemplateModal}
+        onOk={handleSaveNewTemplate}
+        confirmLoading={savingNewTemplate}
+        okText="保存"
+        cancelText="取消"
+        destroyOnClose
+      >
+        <Form form={form} layout="vertical" preserve={false}>
+          <Form.Item label="模板标题" name="title" rules={[{ required: true, message: '请输入模板标题' }]}>
+            <Input placeholder="请输入模板标题" />
+          </Form.Item>
+          <Form.Item label="模板描述" name="description">
+            <Input.TextArea placeholder="请输入模板描述（可选）" rows={4} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
-};
-
-const cardStyle: React.CSSProperties = {
-  padding: '16px',
-  borderRadius: '12px',
-  background: '#fff',
-  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-  width: '200px',
-  fontSize: '12px',
 };
 
 const buttonStyle: React.CSSProperties = {
@@ -336,9 +328,4 @@ const buttonStyle: React.CSSProperties = {
   fontSize: '12px',
   cursor: 'pointer',
   transition: 'all 0.2s ease-in-out',
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  ...buttonStyle,
-  backgroundColor: '#7b8aaf',
 };
