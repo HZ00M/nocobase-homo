@@ -21,8 +21,9 @@ import {
   useDataBlockRequest,
   useSchemaInitializer,
 } from '@nocobase/client';
-import { TaskDesigner } from './TaskDesiner';
+import { TaskDesigner } from './TaskDesigner';
 import { useT } from './locale';
+import { TaskFlowEditor } from './TaskFlowEditor';
 export const FlowDataComponentName = 'TaskDataComponent';
 export const DataSettings = new SchemaSettings({
   name: `blockSettings:${FlowDataComponentName}`,
@@ -64,5 +65,5 @@ export const DataInitializerItem: SchemaInitializerItemType = {
   },
 };
 export const TaskDataComponent: React.FC = () => {
-  return <TaskDesigner />;
+  return <TaskFlowEditor />;
 };

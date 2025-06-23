@@ -13,14 +13,14 @@ export interface TaskMeta {
   type?: string;
   desc?: string;
   mark?: string;
+
   [key: string]: any;
 }
 
 export interface TaskData {
   meta: TaskMeta;
-
-  // onAddChild: (parentNode: Node) => void;
   label: string;
+  parentId: string;
   activityId: string;
   parentTaskId: string;
   promiseTaskId: string;
@@ -37,7 +37,40 @@ export interface TaskData {
   timeType: number;
   startTime: string;
   endTime: string;
+  startTimeStr: string;
+  endTimeStr: string;
   offsetTime: number;
   extraInfo: Record<string, any>;
+
   [key: string]: any;
+}
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface TaskNodeData {
+  id: string;
+  type: string;
+  width: number;
+  height: number;
+  position: Position;
+  data: TaskData;
+}
+
+export interface TaskEdge {
+  id: string;
+  source: string;
+  target: string;
+
+  [key: string]: any;
+}
+
+export interface TaskFlowTemplate {
+  id: string;
+  title: string;
+  description?: string;
+  nodes: TaskNodeData[];
+  edges: TaskEdge[];
 }

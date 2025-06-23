@@ -104,7 +104,7 @@ export const TaskMetaUpload = () => {
     >
       <InboxOutlined style={{ fontSize: 24, color: '#1890ff' }} />
       <Text strong style={{ display: 'block', marginTop: 8, fontSize: 12 }}>
-        点击或拖拽 JSON 文件
+        点击或拖拽上传元文件
       </Text>
       <Text type="secondary" style={{ fontSize: 10 }}>
         仅支持 JSON，内容为数组

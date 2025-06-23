@@ -18,17 +18,17 @@ export class TaskIdGenerator {
     this.initFromNodes(existingNodes);
   }
 
-  private initFromNodes(nodes: Node<TaskData>[]) {
+  public initFromNodes(nodes: Node<TaskData>[]) {
     const maxMap = new Map<string, number>();
 
     for (const node of nodes) {
-      const taskType = node.data.taskType;
-      const match = node.id.match(new RegExp(`^${taskType}_(\\d+)$`));
+      const nodeType = node.data.nodeType;
+      const match = node.id.match(new RegExp(`^${nodeType}_(\\d+)$`));
       if (match) {
         const num = parseInt(match[1], 10);
         if (!isNaN(num)) {
-          const prev = maxMap.get(taskType) || 0;
-          maxMap.set(taskType, Math.max(prev, num));
+          const prev = maxMap.get(nodeType) || 0;
+          maxMap.set(nodeType, Math.max(prev, num));
         }
       }
     }

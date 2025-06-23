@@ -7,63 +7,87 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-// useTaskNodes.ts
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { TaskMeta, TaskData } from './types';
-import ReactFlow, { Connection, useNodesState, useEdgesState, addEdge, Node, Edge } from 'reactflow';
-import { message } from 'antd';
+import ReactFlow, { Connection, useNodesState, useEdgesState, addEdge, Node, Edge, ReactFlowInstance } from 'reactflow';
+import { message, Modal } from 'antd';
 import { useResource } from '@nocobase/client';
 import { TaskIdGenerator } from './TaskIdGenerator';
+import { v4 as uuidv4 } from 'uuid';
+import { deepMergeSources } from './utils';
+import { taskNodeTemplate } from './constants';
+import { useTaskMetas } from './TaskMetaContext';
 
-export function useTaskNodes(initialNodes: Node[], initialEdges: Edge[]) {
+export type UseTaskNodes = ReturnType<typeof useTaskNodes>;
+
+export function useTaskNodes(idGen: TaskIdGenerator) {
+  const { taskMetasRef } = useTaskMetas();
+  const [editingNodeLabel, setEditingNodeLabel] = useState<string | null>(null);
+  const [tempLabel, setTempLabel] = useState<string>('');
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance>();
   const flowResource = useResource('act_task_flow');
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const idGen = new TaskIdGenerator(nodes); // 初始化计数器
-  // 新增选中节点id状态
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const layoutPyramid = (nodes: Node[]) => {
+
+  // ReactFlow 初始化时设置实例
+  const onInit = (instance: ReactFlowInstance) => {
+    setReactFlowInstance(instance);
+  };
+  const layoutPyramid = (allNodes: Node[]): Node[] => {
     const gapX = 280;
     const gapY = 220;
+
+    // 用 Map 复制每个节点，避免原始引用修改污染隐藏节点
+    const nodeMap = new Map<string, Node>();
+    allNodes.forEach((n) => nodeMap.set(n.id, { ...n, position: { ...n.position } }));
+
+    const visibleNodes = Array.from(nodeMap.values()).filter((node) => !node.hidden);
+
     const childrenMap = new Map<string, Node[]>();
-    nodes.forEach((node) => {
-      const parentId = node.data.parentTaskId;
+    for (const node of visibleNodes) {
+      const parentId = node.data.parentId;
       if (parentId) {
-        if (!childrenMap.has(parentId)) childrenMap.set(parentId, []);
+        if (!childrenMap.has(parentId)) {
+          childrenMap.set(parentId, []);
+        }
         childrenMap.get(parentId)!.push(node);
       }
-    });
+    }
 
-    const layoutSubtree = (node: Node, depth = 0, startX = 0, visited = new Set<string>()): number => {
-      if (visited.has(node.id)) {
-        console.warn(`检测到环，跳过节点 ${node.id} 的重复布局`);
-        // 避免无限递归，直接返回0宽度，或者可以返回gapX
-        return 0;
-      }
-      visited.add(node.id);
-
-      const children = childrenMap.get(node.id) || [];
+    const layoutSubtree = (node: Node, depth = 0, startX = 0): number => {
+      const nodeId = node.id;
+      const children = childrenMap.get(nodeId) || [];
       if (children.length === 0) {
         node.position = { x: startX, y: depth * gapY };
         return gapX;
       }
+
       let totalWidth = 0;
       const childXStart = startX;
-      children.forEach((child) => {
-        totalWidth += layoutSubtree(child, depth + 1, childXStart + totalWidth, new Set(visited));
-      });
+      for (const child of children) {
+        totalWidth += layoutSubtree(child, depth + 1, childXStart + totalWidth);
+      }
+
       const centerX = childXStart + totalWidth / 2 - gapX / 2;
       node.position = { x: centerX, y: depth * gapY };
       return totalWidth;
     };
 
-    const roots = nodes.filter((n) => !n.data.parentTaskId);
+    const roots = visibleNodes.filter((n) => !n.data.parentId || !nodeMap.has(n.data.parentId));
+
     let cursorX = 0;
-    roots.forEach((root) => {
+    for (const root of roots) {
       const subtreeWidth = layoutSubtree(root, 0, cursorX);
       cursorX += subtreeWidth + gapX;
+    }
+
+    // 返回新的节点列表（保留 hidden 节点位置不动）
+    return allNodes.map((n) => {
+      const updated = nodeMap.get(n.id);
+      return updated ? { ...n, position: updated.position } : n;
     });
-    return [...nodes];
   };
   const addNewTask = (parentId?: string, taskMeta?: TaskMeta) => {
     if (taskMeta === undefined) {
@@ -72,73 +96,189 @@ export function useTaskNodes(initialNodes: Node[], initialEdges: Edge[]) {
         desc: '默认子任务',
       };
     }
-    const taskType = taskMeta.value;
-    // 使用传入的 parentId，如果没传再用当前选中的节点
-    const resolvedParentId = parentId ?? selectedNodeId;
-    const sameTypeCount = nodes.filter((n) => n.data?.taskType === taskType).length;
-    const incr = idGen.next(taskType);
-    const newId = `${taskType}_${incr}`;
-    const newNode: Node<TaskData> = {
-      id: newId,
-      type: 'stacked',
-      position: { x: 100, y: 100 },
-      data: {
-        meta: taskMeta,
-        label: `${taskMeta.type || '任务'}_${incr}`,
-        activityId: '',
-        parentTaskId: resolvedParentId ?? '',
-        promiseTaskId: '',
-        taskId: newId,
-        nodeType: '',
-        taskType: taskType,
-        targetProcess: 0,
-        weight: 0,
-        condition: '',
-        rewardType: '',
-        reward: '',
-        desc: '',
-        sortId: 0,
-        timeType: 0,
-        startTime: '2025-06-01',
-        endTime: '2025-06-15',
-        offsetTime: 0,
-        extraInfo: {},
-        // onAddChild: addNewTask,
-        // onDelete: deleteNode,
-        // onSelect: onNodeSelect,
-      },
-    };
+    const nodeType = taskMeta.value;
+    // 操作节点ID
+    const operationNodeId = parentId ?? selectedNodeId;
+    const sameTypeCount = nodes.filter((n) => n.data?.nodeType === nodeType).length;
+    const incr = idGen.next(nodeType);
+    const taskId = `${nodeType}_${incr}`;
+    const newId = uuidv4();
+    const parentNode = nodes.find((n) => n.id === operationNodeId);
 
-    setNodes((nds) => layoutPyramid([...nds, newNode]));
+    // 先确保操作节点展开（折叠则展开）
+    setNodes((prevNodes) => {
+      const updatedNodes = prevNodes.map((n) => {
+        if (n.id === operationNodeId && n.data.collapsed) {
+          return {
+            ...n,
+            data: { ...n.data, collapsed: false },
+            hidden: false, // 确保展开时显示
+          };
+        }
+        return n;
+      });
+      const newNode: Node<TaskData> = deepMergeSources(taskNodeTemplate, {
+        id: newId,
+        data: {
+          label: taskId,
+          parentId: operationNodeId,
+          meta: taskMeta,
+          taskId: taskId,
+          parentTaskId: parentNode?.data?.taskId || '',
+          nodeType: taskMeta.value,
+        },
+      });
+      return layoutPyramid([...updatedNodes, newNode]);
+    });
 
-    // 添加连线
-    if (resolvedParentId) {
+    // 添加新连线
+    if (operationNodeId) {
       const newEdge: Edge = {
-        id: `edge-${incr}`,
-        source: resolvedParentId,
+        id: `edge-${operationNodeId}-${newId}`,
+        source: operationNodeId,
         target: newId,
         type: 'default',
         animated: true,
       };
       setEdges((eds) => [...eds, newEdge]);
     }
+    setSelectedNodeId(operationNodeId);
+  };
 
-    setSelectedNodeId(newId);
+  const toggleCollapse = (nodeId: string) => {
+    // 建立父节点 -> 直接子节点 映射
+    const childMap = new Map<string, string[]>();
+    edges.forEach((edge) => {
+      if (!childMap.has(edge.source)) childMap.set(edge.source, []);
+      childMap.get(edge.source)!.push(edge.target);
+    });
+
+    const node = nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+    const collapsed = !node.data.collapsed;
+
+    // 递归拿到所有后代节点id（整棵子树）
+    const getAllDescendants = (id: string, visited = new Set<string>()): string[] => {
+      if (visited.has(id)) return [];
+      visited.add(id);
+      const children = childMap.get(id) || [];
+      let result: string[] = [];
+      for (const childId of children) {
+        result.push(childId);
+        result = result.concat(getAllDescendants(childId, visited));
+      }
+      return result;
+    };
+
+    const allDescendants = getAllDescendants(nodeId);
+    const directChildren = childMap.get(nodeId) || [];
+
+    // 更新节点显示状态
+    setNodes((prevNodes) => {
+      const newNodes = prevNodes.map((n) => {
+        if (n.id === nodeId) {
+          // 当前节点状态切换collapsed
+          return {
+            ...n,
+            data: { ...n.data, collapsed },
+            hiddenByParentCollapse: false,
+            hidden: false,
+          };
+        }
+        if (allDescendants.includes(n.id)) {
+          if (collapsed) {
+            // 折叠：所有后代隐藏
+            return { ...n, hiddenByParentCollapse: true, hidden: true };
+          } else {
+            // 展开：只显示直接子节点，其他隐藏
+            if (directChildren.includes(n.id)) {
+              return { ...n, hiddenByParentCollapse: false, hidden: false };
+            }
+            return { ...n, hiddenByParentCollapse: true, hidden: true };
+          }
+        }
+        // 不受影响的节点保持不变
+        return n;
+      });
+      return layoutPyramid(newNodes);
+    });
+
+    // 更新边显示状态
+    setEdges((prevEdges) => {
+      const newEdges = prevEdges.map((edge) => {
+        if (collapsed) {
+          // 折叠：所有子树边隐藏
+          if (allDescendants.includes(edge.source) || allDescendants.includes(edge.target)) {
+            return { ...edge, hidden: true };
+          }
+        } else {
+          // 展开：只显示连接当前节点和直接子节点的边
+          if (edge.source === nodeId && directChildren.includes(edge.target)) {
+            return { ...edge, hidden: false };
+          }
+          if (allDescendants.includes(edge.source) || allDescendants.includes(edge.target)) {
+            return { ...edge, hidden: true };
+          }
+        }
+        return edge;
+      });
+      return newEdges;
+    });
+
+    setSelectedNodeId(nodeId);
+  };
+
+  // 确认修改 label
+  const confirmEditLabel = (nodeId: string) => {
+    setNodes((prev) =>
+      prev.map((n) => {
+        if (n.id === nodeId) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              label: tempLabel,
+            },
+          };
+        }
+        return n;
+      }),
+    );
+    setEditingNodeLabel(null);
+    setTempLabel('');
+  };
+
+  // 取消编辑
+  const cancelEditLabel = () => {
+    setEditingNodeLabel(null);
+    setTempLabel('');
   };
 
   const getEnhancedNodes = () => {
-    return nodes.map((node) => ({
-      ...node,
-      selected: node.id === selectedNodeId,
-      data: {
-        ...node.data,
-        onAddChild: addNewTask,
-        onDelete: deleteNode,
-        onSelect: () => onNodeSelect(node.id),
-      },
-    }));
+    return nodes.map((node) => {
+      const isEditing = node.id === editingNodeLabel;
+      return {
+        ...node,
+        selected: node.id === selectedNodeId,
+        data: {
+          ...node.data,
+          onAddChild: addNewTask,
+          onDelete: () => deleteNodeWithConfirm(node.id),
+          onSelect: () => onNodeSelect(node.id),
+          onToggleCollapse: () => toggleCollapse(node.id),
+          editing: isEditing,
+          tempLabel: isEditing ? tempLabel : '',
+          onStartEditLabel: () => {
+            setEditingNodeLabel(node.id);
+            setTempLabel(node.data.label);
+          },
+          onChangeTempLabel: (val: string) => setTempLabel(val),
+          onConfirmEditLabel: () => confirmEditLabel(node.id),
+          onCancelEditLabel: cancelEditLabel,
+        },
+      };
+    });
   };
-
   const deleteNode = (id: string) => {
     setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
     setNodes((nds) => {
@@ -150,55 +290,134 @@ export function useTaskNodes(initialNodes: Node[], initialEdges: Edge[]) {
       return layoutPyramid(filtered);
     });
   };
+  // 递归获取所有后代节点id
+  const getAllDescendants = (id: string, childMap: Map<string, string[]>, visited = new Set<string>()): string[] => {
+    if (visited.has(id)) return [];
+    visited.add(id);
+    const children = childMap.get(id) || [];
+    const result = [...children];
+    for (const childId of children) {
+      result.push(...getAllDescendants(childId, childMap, visited));
+    }
+    return result;
+  };
 
+  const deleteNodeWithConfirm = (id: string) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: '确认删除该节点及其所有子节点吗？此操作不可撤销。',
+      okText: '确认',
+      cancelText: '取消',
+      onOk() {
+        // 先构建 childMap 用于查找子孙节点
+        const childMap = new Map<string, string[]>();
+        for (const edge of edges) {
+          if (!childMap.has(edge.source)) {
+            childMap.set(edge.source, []);
+          }
+          childMap.get(edge.source)!.push(edge.target);
+        }
+        // 获取所有后代节点id
+        const descendants = getAllDescendants(id, childMap);
+        // 包括自己一起删除
+        const toDeleteIds = new Set([id, ...descendants]);
+
+        // 删除节点
+        setNodes((nds) => {
+          const filtered = nds.filter((n) => !toDeleteIds.has(n.id));
+          // 如果删除了选中节点，清空选中
+          if (selectedNodeId && toDeleteIds.has(selectedNodeId)) {
+            setSelectedNodeId(null);
+          }
+          return layoutPyramid(filtered);
+        });
+
+        // 删除边
+        setEdges((eds) => eds.filter((e) => !toDeleteIds.has(e.source) && !toDeleteIds.has(e.target)));
+      },
+    });
+  };
   const importTemplateById = async (templateId: string) => {
     try {
       const { data } = await flowResource.get({ filter: { id: templateId } });
       const tplNodes: Node<TaskData>[] = data?.data?.nodes || [];
       const tplEdges: Edge[] = data?.data?.edges || [];
-      // 找出模板中的根节点（没有 parentTaskId）
-      const tplRootNode = tplNodes.find((n) => !n.data.parentTaskId || n.data.parentTaskId === '');
-      const idMap = new Map<string, number>();
+      const idMap = new Map<string, string>();
+      const taskIdMap = new Map<string, string>();
 
-      // 生成新 ID 映射
-      tplNodes.forEach((node, i) => {
-        const newId = idGen.nextId(node.data.taskType);
-        idMap.set(node.id, newId);
+      // 映射模板内原始节点ID → 新ID
+      tplNodes.forEach((node) => {
+        const newNodeId = uuidv4();
+        const incr = idGen.next(node.data.nodeType);
+        const newTaskId = `${node.data.nodeType}_${incr}`;
+        idMap.set(node.id, newNodeId);
+        taskIdMap.set(node.data.taskId, newTaskId);
       });
 
-      const newNodes = tplNodes.map((node) => ({
-        ...node,
-        id: idMap.get(node.id)!,
-        position: {
-          x: (node.position?.x || 0) + 100,
-          y: (node.position?.y || 0) + 100,
-        },
-        data: {
-          ...node.data,
-          id: idMap.get(node.id)!,
-          taskId: idMap.get(node.id)!,
-          parentTaskId: node.data.parentTaskId ? idMap.get(node.data.parentTaskId)! : selectedNodeId || '', // 挂载或不挂载
-        },
-      }));
+      // 判断是否作为子任务插入
+      const parentNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) : null;
+      const parentCollapsed = parentNode?.data.collapsed;
 
+      // 更新节点
+      const newNodes = tplNodes.map((node) => {
+        const newId = idMap.get(node.id)!;
+        const newTaskId = taskIdMap.get(node.data.taskId)!;
+        const newParentId = node.data.parentId ? idMap.get(node.data.parentId) || '' : '';
+        const newParentTaskId = node.data.parentTaskId ? taskIdMap.get(node.data.parentTaskId) || '' : '';
+        const taskMeta = taskMetasRef.current.find((meta) => meta.value === node.data.nodeType);
+
+        const isRootOfTemplate = !node.data.parentTaskId;
+        const shouldHide = parentCollapsed === true && isRootOfTemplate === false;
+
+        return {
+          ...node,
+          id: newId,
+          position: {
+            x: (node.position?.x || 0) + 100,
+            y: (node.position?.y || 0) + 100,
+          },
+          data: {
+            ...node.data,
+            taskId: newTaskId,
+            parentId: isRootOfTemplate && selectedNodeId ? selectedNodeId : newParentId,
+            parentTaskId: isRootOfTemplate && selectedNodeId ? parentNode?.data.taskId || '' : newParentTaskId,
+            meta: taskMeta ?? {
+              value: 'Task',
+              type: 'unknown',
+              desc: '未知任务',
+              mark: '',
+            },
+            collapsed: false,
+            hiddenByParentCollapse: shouldHide,
+          },
+          hidden: shouldHide,
+        };
+      });
+
+      // 更新边
       const newEdges = tplEdges.map((edge) => ({
         ...edge,
         id: `edge-${idMap.get(edge.source)}-${idMap.get(edge.target)}`,
         source: idMap.get(edge.source)!,
         target: idMap.get(edge.target)!,
         animated: true,
+        type: 'default',
+        hidden: parentCollapsed === true, // 同样折叠时边也隐藏
       }));
 
-      // 如果当前有选中节点且找到根节点，添加一条新边连接两者
-      if (selectedNodeId && tplRootNode) {
+      // 若当前有选中节点，将模板根节点连接过去
+      const tplRoot = newNodes.find((n) => !tplNodes.find((o) => o.data.taskId === n.data.parentTaskId));
+      if (tplRoot && selectedNodeId) {
         newEdges.push({
-          id: `edge-${selectedNodeId}-${tplRootNode.id}`,
+          id: `edge-${selectedNodeId}-${tplRoot.id}`,
           source: selectedNodeId,
-          target: idMap.get(tplRootNode.id),
+          target: tplRoot.id,
           type: 'default',
           animated: true,
+          hidden: parentCollapsed === true,
         });
       }
+
       // 合并并重新布局
       setNodes((nds) => layoutPyramid([...nds, ...newNodes]));
       setEdges((eds) => [...eds, ...newEdges]);
@@ -213,6 +432,7 @@ export function useTaskNodes(initialNodes: Node[], initialEdges: Edge[]) {
       message.error('导入模板失败');
     }
   };
+
   // 新增选中节点处理函数
   const onNodeSelect = (id: string | null) => {
     setSelectedNodeId(id);
@@ -262,7 +482,6 @@ export function useTaskNodes(initialNodes: Node[], initialEdges: Edge[]) {
     edges,
     setEdges,
     addNewTask,
-    deleteNode,
     onNodesChange,
     onEdgesChange,
     layoutPyramid,
@@ -271,5 +490,7 @@ export function useTaskNodes(initialNodes: Node[], initialEdges: Edge[]) {
     importTemplateById,
     resetNodeInfo,
     onConnect,
+    onInit,
+    editingNodeId: editingNodeLabel,
   };
 }

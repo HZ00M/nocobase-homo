@@ -1,37 +1,39 @@
-/**
- * This file is part of the NocoBase (R) project.
- * Copyright (c) 2020-2024 NocoBase Co., Ltd.
- * Authors: NocoBase Team.
- *
- * This project is dual-licensed under AGPL-3.0 and NocoBase Commercial License.
- * For more information, please refer to: https://www.nocobase.com/agreement.
- */
-
 import React, { useEffect, useMemo, useState } from 'react';
 import { Input, Modal, Button, Tooltip, Empty } from 'antd';
-import { SearchOutlined, ExpandOutlined, PlusOutlined } from '@ant-design/icons';
+import { SearchOutlined, ExpandOutlined } from '@ant-design/icons';
 import { useAPIClient } from '@nocobase/client';
 import { TaskMeta } from './types';
 import { TaskMetaUpload } from './TaskMetaUpload';
+import { useTaskMetas } from './TaskMetaContext';
 
 interface TaskMetaSelectorProps {
-  onSelect?: (task: TaskMeta) => void;
-  showImportButton?: boolean;
+  onAddTask?: (parentId: string, task: TaskMeta) => void;
 }
 
-export const TaskMetaSelector: React.FC<TaskMetaSelectorProps> = ({ onSelect, showImportButton = true }) => {
+export const TaskMetaOperator: React.FC<TaskMetaSelectorProps> = ({ onAddTask }) => {
   const api = useAPIClient();
-  const [taskMetas, setTaskMetas] = useState<TaskMeta[]>([]);
+  const { taskMetas, setTaskMetas } = useTaskMetas();
+  // const [taskMetas, setTaskMetas] = useState<TaskMeta[]>([]);
   const [searchText, setSearchText] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     fetchTaskMeta();
   }, []);
-
+  useEffect(() => {
+    console.log('taskMetas 更新了:', taskMetas);
+  }, [taskMetas]);
   const fetchTaskMeta = async () => {
-    const res = await api.resource('act_task_type').list({ pageSize: 1000 });
-    setTaskMetas(res?.data?.data || []);
+    const res = await api
+      .resource('act_task_type')
+      .list({ pageSize: 1000 })
+      .then((res) => {
+        const data = res?.data?.data || [];
+        setTaskMetas(data);
+        console.log('fetched task res:', res);
+        console.log('fetched task data:', data);
+        console.log('fetched task metas:', taskMetas);
+      });
   };
 
   const getMatchScore = (item: TaskMeta, keyword: string) => {
@@ -71,7 +73,7 @@ export const TaskMetaSelector: React.FC<TaskMetaSelectorProps> = ({ onSelect, sh
     return (
       <Tooltip title={tooltipContent} placement="right" key={taskMeta.value}>
         <div
-          onClick={() => onSelect?.(taskMeta)}
+          onClick={() => onAddTask?.(null, taskMeta)}
           style={{
             background: '#fff',
             borderRadius: 6,
@@ -99,51 +101,37 @@ export const TaskMetaSelector: React.FC<TaskMetaSelectorProps> = ({ onSelect, sh
     );
   };
 
-  const renderList = (showFull: boolean) => {
-    if (filtered.length === 0) return <Empty description="未找到匹配的任务" />;
-    return (
-      <div style={{ maxHeight: showFull ? 500 : 300, overflowY: 'auto' }}>
-        {filtered.map((item) => renderItem(item, showFull))}
-      </div>
-    );
-  };
-
   return (
     <div
       style={{
-        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%', // ✅ 高度由调用者决定
         padding: 12,
         background: '#fefefe',
         borderRadius: 8,
         border: '1px solid #e0e0e0',
       }}
     >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <h4>新增任务</h4>
+        <Button icon={<ExpandOutlined />} size="small" type="text" onClick={() => setModalVisible(true)}>
+          更多
+        </Button>
+      </div>
+
       <Input
         allowClear
-        placeholder="搜索任务元数据（支持 value/type/desc/mark）"
+        placeholder="搜索任务元数据"
         prefix={<SearchOutlined />}
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
         style={{ marginBottom: 8 }}
       />
 
-      {showImportButton && (
-        <div style={{ marginBottom: 12 }}>
-          <TaskMetaUpload />
-        </div>
-      )}
-
-      {renderList(false)}
-
-      <Button
-        icon={<ExpandOutlined />}
-        size="small"
-        type="text"
-        style={{ position: 'absolute', top: 12, right: 12 }}
-        onClick={() => setModalVisible(true)}
-      >
-        放大
-      </Button>
+      <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+        {filtered.length > 0 ? filtered.map((item) => renderItem(item)) : <Empty description="未找到匹配的任务" />}
+      </div>
 
       <Modal
         title="任务元数据列表"
@@ -153,15 +141,24 @@ export const TaskMetaSelector: React.FC<TaskMetaSelectorProps> = ({ onSelect, sh
         width={800}
         styles={{ body: { padding: 0 } }}
       >
-        <Input
-          allowClear
-          placeholder="搜索任务元数据（value/type/desc/mark）"
-          prefix={<SearchOutlined />}
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ marginBottom: 16 }}
-        />
-        {renderList(true)}
+        <div style={{ padding: 16 }}>
+          <TaskMetaUpload />
+          <Input
+            allowClear
+            placeholder="搜索任务元数据（value/type/desc/mark）"
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ marginBottom: 16 }}
+          />
+          <div style={{ maxHeight: 500, overflowY: 'auto' }}>
+            {filtered.length > 0 ? (
+              filtered.map((item) => renderItem(item, true))
+            ) : (
+              <Empty description="未找到匹配的任务" />
+            )}
+          </div>
+        </div>
       </Modal>
     </div>
   );
