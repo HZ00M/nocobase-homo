@@ -16,8 +16,10 @@ const { Dragger } = Upload;
 const { Text } = Typography;
 
 const taleName = 'act_task_type';
-
-export const TaskMetaUpload = () => {
+interface TaskMetaUploadProps {
+  onSuccess?: () => void;
+}
+export const TaskMetaUpload: React.FC<TaskMetaUploadProps> = ({ onSuccess }) => {
   const api = useAPIClient();
   const [loading, setLoading] = useState(false);
 
@@ -46,16 +48,28 @@ export const TaskMetaUpload = () => {
       const updateList = [];
 
       for (const item of data) {
-        const formatted = {
-          ...item,
-          inheritance: JSON.stringify(item.inheritance || []),
-          include: JSON.stringify(item.include || []),
-          exclude: JSON.stringify(item.exclude || []),
-          require: JSON.stringify(item.require || []),
-          requireField: JSON.stringify(item.requireField || []),
-          preRequireField: JSON.stringify(item.preRequireField || []),
-          subRequireField: JSON.stringify(item.subRequireField || []),
-        };
+        const formatted: Record<string, any> = {};
+        const jsonFields = [
+          // 'value',
+          // 'type',
+          // 'desc',
+          'inheritance',
+          'className',
+          'include',
+          'exclude',
+          'require',
+          'requireField',
+          'preRequireField',
+          'subRequireField',
+        ];
+        // 遍历 item 中每个字段，如果是 json 字段，则 stringify，否则原样复制
+        for (const key in item) {
+          if (jsonFields.includes(key)) {
+            formatted[key] = typeof item[key] === 'string' ? item[key] : JSON.stringify(item[key] || []);
+          } else {
+            formatted[key] = item[key];
+          }
+        }
 
         const existingItem = existingMap.get(item.value);
         if (existingItem) {
@@ -77,6 +91,7 @@ export const TaskMetaUpload = () => {
       }
 
       message.success(`导入成功：新增 ${createList.length} 条，更新 ${updateList.length} 条`);
+      onSuccess();
     } catch (e: any) {
       console.error(e);
       message.error('导入失败：' + (e.message || '未知错误'));

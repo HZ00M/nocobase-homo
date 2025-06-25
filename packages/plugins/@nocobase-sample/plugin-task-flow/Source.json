@@ -1,316 +1,387 @@
 [
   {
-    "include": ["MaxProcessLayerTask"],
-    "preRequireField": ["condition"],
-    "subRequireField": ["sort"],
-    "inheritance": ["Task", "LayerTask", "MaxProcessLayerTask"],
-    "exclude": ["LayerTask"],
-    "require": ["MaxProcessLayerTask"],
+    "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.MaxProcessLayerTask",
-    "requireField": ["weight"],
-    "type": "最大进程分层节点",
+    "type": "LayerTask",
     "value": "MaxProcessLayerTask",
-    "desc": "最大进程分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.red.OnOpenRedPointTask",
+    "type": "Task",
     "value": "OnOpenRedPointTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.wheel.WheelMgrTask",
+    "type": "Task",
     "value": "WheelMgrTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.bingo.OrderDrawLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "OrderDrawLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.common.MailSendMaterialTransformTask",
+    "type": "ConditionTask",
     "value": "MailSendMaterialTransformTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.pushCoin.PushCoinManagerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "PushCoinManagerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.shop.LifeTimeCardTask",
+    "type": "ConditionTask",
     "value": "LifeTimeCardTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.AccumulatedDrawPageLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "AccumulatedDrawPageLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.dailyChallenge.old.DcProgressManageTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "DcProgressManageTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.AfterDealLayerTask",
+    "type": "Task",
     "value": "AfterDealLayerTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["TaskAward", "BusinessTaskAward"],
+    "className": "com.syyx.tpf.business.activity.reward.DelayedAward",
+    "requireField": ["reward"],
+    "type": "TaskAward",
+    "value": "DelayedAward",
+    "desc": "功能：领取reward字段配置的奖励\n说明：该类型为默认值，即不配置该字段默认领取reward字段配置的奖励"
+  },
+  {
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.common.MailSendTask",
+    "type": "ConditionTask",
     "value": "MailSendTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.anninersary.PlotDialogueTask",
+    "type": "Task",
     "value": "PlotDialogueTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.common.OpenAddTagTask",
+    "type": "Task",
     "value": "OpenAddTagTask",
     "desc": "Task节点"
   },
   {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.multBp.MultBpExpAward",
+    "type": "TaskAward",
+    "value": "MultBpExpAward",
+    "desc": "任务奖励节点"
+  },
+  {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.brawl.EvertDayResetRandomChildLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "EvertDayResetRandomChildLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.multBp.ResetShopBuyCountTask",
+    "type": "Task",
     "value": "ResetShopBuyCountTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.rank.MushDashReportTask",
+    "type": "ConditionTask",
     "value": "MushDashReportTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.multBp.MultBpEveryDayManagerLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "MultBpEveryDayManagerLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
+  },
+  {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.accumulated.DrawAccumulatedAward",
+    "type": "TaskAward",
+    "value": "DrawAccumulatedAward",
+    "desc": "任务奖励节点"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.ScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "ScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.wheel.WheelCountTask",
+    "type": "ConditionTask",
     "value": "WheelCountTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.newYear.BomberDrawManagerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "BomberDrawManagerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.schedule.AccumulatedProgressTask",
+    "type": "ConditionTask",
     "value": "AccumulatedProgressTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.verify.VerificationAbroadTask",
+    "type": "Task",
     "value": "VerificationAbroadTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.fix.UserPatchManageLayerTask",
+    "type": "Task",
     "value": "UserPatchManageLayerTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.pushCoin.CostDrawRewardTask",
+    "type": "Task",
     "value": "CostDrawRewardTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.AllDealCloseLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "AllDealCloseLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.battlePass.BpRootTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "BpRootTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.common.OnOpenFinishReceiveTask",
+    "type": "Task",
     "value": "OnOpenFinishReceiveTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.reflux.NoRedDynamicConditionTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "NoRedDynamicConditionTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.dailyChallenge.DailyChallengeManagerLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "DailyChallengeManagerLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
+  },
+  {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.prehear.LevelTaskAward",
+    "type": "TaskAward",
+    "value": "LevelTaskAward",
+    "desc": "任务奖励节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.prehear.FeedStageTask",
+    "type": "Task",
     "value": "FeedStageTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.AllChildDealCloseLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "AllChildDealCloseLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.dailyChallenge.old.DcDynamicConditionTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "DcDynamicConditionTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.sync.SyncRootManagerTask",
+    "type": "ConditionTask",
     "value": "SyncRootManagerTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
+  },
+  {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.battlePass.BpCycleAward",
+    "type": "TaskAward",
+    "value": "BpCycleAward",
+    "desc": "任务奖励节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.common.MergeGrandsonLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "MergeGrandsonLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
+  },
+  {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.wheel.WheelDrawAward",
+    "type": "TaskAward",
+    "value": "WheelDrawAward",
+    "desc": "任务奖励节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.common.TargetUnFinishEveryDaySendMailTask",
+    "type": "Task",
     "value": "TargetUnFinishEveryDaySendMailTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.sync.SyncBaseTaskManagerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "SyncBaseTaskManagerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.fix.GameDynamicCheckTask",
+    "type": "Task",
     "value": "GameDynamicCheckTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.draw.RandomInfoAutoTask",
+    "type": "Task",
     "value": "RandomInfoAutoTask",
     "desc": "Task节点"
+  },
+  {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.moon.MoonBoxReward",
+    "type": "TaskAward",
+    "value": "MoonBoxReward",
+    "desc": "任务奖励节点"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.prehear.LevelRewardTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "LevelRewardTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.multBp.MultBpNormalLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "MultBpNormalLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.dailyChallenge.old.DailyChallengeBaseTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "DailyChallengeBaseTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.OneClickRewardScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "OneClickRewardScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.XuanyiCounterTask",
+    "type": "Task",
     "value": "XuanyiCounterTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.free.FreePurchaseLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "FreePurchaseLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.multBp.MultBpUpLevelTask",
+    "type": "Task",
     "value": "MultBpUpLevelTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.prehear.PreHearRootTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "PreHearRootTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.AllChildDealCloseScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "AllChildDealCloseScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
@@ -318,7 +389,7 @@
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.MaxProcessScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "MaxProcessScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
@@ -326,39 +397,43 @@
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.red.RedPointManageScheduleTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "RedPointManageScheduleTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.SelfDynamicConditionTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "SelfDynamicConditionTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.reflux.RefluxRootTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "RefluxRootTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.gift.CurveGiftLayerTask",
+    "type": "Task",
     "value": "CurveGiftLayerTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.bingo.CircleDrawLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "CircleDrawLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.GlobalCounterTask",
+    "type": "Task",
     "value": "GlobalCounterTask",
     "desc": "Task节点"
   },
@@ -366,522 +441,625 @@
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.AllDealCloseScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "AllDealCloseScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.moneyboxes.MoneyBoxTask",
+    "type": "ConditionTask",
     "value": "MoneyBoxTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.SelectOpenTask",
+    "type": "Task",
     "value": "SelectOpenTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.multBp.MultBpGearManagerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "MultBpGearManagerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.verify.ConveneCodeTask",
+    "type": "Task",
     "value": "ConveneCodeTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.draw.multi.MultiPageDrawManagerLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "MultiPageDrawManagerLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.XuanyiProcessScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "XuanyiProcessScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.shop.MonthlyCardTask",
+    "type": "ConditionTask",
     "value": "MonthlyCardTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.common.OnOpenFinishTask",
+    "type": "Task",
     "value": "OnOpenFinishTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.wheel.ShowlItemTask",
+    "type": "Task",
     "value": "ShowlItemTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.multBp.MultBpLevelTask",
+    "type": "ConditionTask",
     "value": "MultBpLevelTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.schedule.CustomProgressTask",
+    "type": "ConditionTask",
     "value": "CustomProgressTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.verify.ConveneCodeAbroadTask",
+    "type": "Task",
     "value": "ConveneCodeAbroadTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.reflux.RefluxDropShowTask",
+    "type": "Task",
     "value": "RefluxDropShowTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.OneClickRewardLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "OneClickRewardLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.AllChildFinishResetTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "AllChildFinishResetTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.DynamicConditionTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "DynamicConditionTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.battlePass.BpVipTask",
+    "type": "ConditionTask",
     "value": "BpVipTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.verify.ConveneUserTask",
+    "type": "ConditionTask",
     "value": "ConveneUserTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.BaseDynamicConditionTask",
+    "type": "ConditionTask",
     "value": "BaseDynamicConditionTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.sync.SyncScoreManagerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "SyncScoreManagerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.multBp.MultBpGearTask",
+    "type": "ConditionTask",
     "value": "MultBpGearTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.dailyChallenge.old.DcBaseManageTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "DcBaseManageTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
+  },
+  {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.MailAward",
+    "type": "TaskAward",
+    "value": "MailAward",
+    "desc": "任务奖励节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.sync.SyncRankManagerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "SyncRankManagerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.newRole.CostItemTask",
+    "type": "ConditionTask",
     "value": "CostItemTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.EvertDayResetChildLayerManagerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "EvertDayResetChildLayerManagerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.RootTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "RootTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.SecondResetChildScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "SecondResetChildScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.draw.multi.ConsecutiveDrawTask",
+    "type": "ConditionTask",
     "value": "ConsecutiveDrawTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.LayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "LayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.battlePass.BPCycleItemTask",
+    "type": "ConditionTask",
     "value": "BPCycleItemTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.battlePass.BpExpAward",
+    "type": "TaskAward",
+    "value": "BpExpAward",
+    "desc": "任务奖励节点"
+  },
+  {
+    "inheritance": ["TaskAward", "BusinessTaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.NoRemedyDefaultAward",
+    "requireField": ["reward"],
+    "type": "TaskAward",
+    "value": "NoRemedyDefaultAward",
+    "desc": "功能：领取reward字段配置的奖励\n说明：该类型为默认值，即不配置该字段默认领取reward字段配置的奖励"
+  },
+  {
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.shop.TypeOpenShopTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "TypeOpenShopTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.accumulated.DrawAccumulatedTask",
+    "type": "Task",
     "value": "DrawAccumulatedTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.login.SignAndMakeUpTask",
+    "type": "ConditionTask",
     "value": "SignAndMakeUpTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.common.AllChildFinishCloseLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "AllChildFinishCloseLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.OpenWithRedLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "OpenWithRedLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.verify.VerificationTask",
+    "type": "Task",
     "value": "VerificationTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.EvertDayResetDynamicConditionTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "EvertDayResetDynamicConditionTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.common.AllChildDealFinishCloseLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "AllChildDealFinishCloseLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.ChildAwardManagerLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "ChildAwardManagerLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.ImmediatelyScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "ImmediatelyScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.picture.PictureRootTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "PictureRootTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.draw.multi.DrawRecordTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "DrawRecordTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.abroad.AbroadAccessPartyTask",
+    "type": "Task",
     "value": "AbroadAccessPartyTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.battlePass.BpUpLevelTask",
+    "type": "ConditionTask",
     "value": "BpUpLevelTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.WeekResetChildLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "WeekResetChildLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.sync.SyncSettlementManagerTask",
+    "type": "ConditionTask",
     "value": "SyncSettlementManagerTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.moon.MoonBoxMangeLayer",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "MoonBoxMangeLayer",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.draw.RandomInfoTask",
+    "type": "Task",
     "value": "RandomInfoTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.picture.PictureDrawRewardTask",
+    "type": "Task",
     "value": "PictureDrawRewardTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.DealAllRewardLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "DealAllRewardLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.battlePass.BPItemVipTask",
+    "type": "ConditionTask",
     "value": "BPItemVipTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.wheel.WheelScoreTask",
+    "type": "ConditionTask",
     "value": "WheelScoreTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.game.activity.core.task.Task",
+    "type": "Task",
     "value": "Task",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.anninersary.AnniversaryDrawTask",
+    "type": "Task",
     "value": "AnniversaryDrawTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.ttm.TtmWeaponForgeTask",
+    "type": "ConditionTask",
     "value": "TtmWeaponForgeTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.DealAllRewardScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "DealAllRewardScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.common.EveryDaySendMailTask",
+    "type": "Task",
     "value": "EveryDaySendMailTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.bingo.BingoDrawManagerLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "BingoDrawManagerLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.battlePass.BPItemTask",
+    "type": "ConditionTask",
     "value": "BPItemTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.newYear.MaterialConvertManagerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "MaterialConvertManagerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["TaskAward", "ChoiceAward"],
+    "className": "com.syyx.tpf.business.activity.task.ChoiceAward",
+    "requireField": ["reward", "rewardCount"],
+    "type": "TaskAward",
+    "value": "ChoiceAward",
+    "desc": "功能：可选择奖励\n说明：配置了这种类型的奖励，即reward字段的奖励选择发放，可在extraInfo字段配置{\"rewardCount\"：\"x\"}指定可选择数，不配置默认n选1,活动结束如果配置了补发机制，默认按配置顺序补发前n个,"
+  },
+  {
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.TotalAddDynamicConditionTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "TotalAddDynamicConditionTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.prehear.RewardReceiveTask",
+    "type": "Task",
     "value": "RewardReceiveTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.red.EverDayResetRedPointTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "EverDayResetRedPointTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.EvertDayResetChildManageTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "EvertDayResetChildManageTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.OpenWithRedScheduleTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "OpenWithRedScheduleTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.picture.PicturePieceTask",
+    "type": "ConditionTask",
     "value": "PicturePieceTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.ThurResetChildLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "ThurResetChildLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
+  },
+  {
+    "inheritance": ["TaskAward", "BusinessTaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.BusinessTaskAward",
+    "requireField": ["reward"],
+    "type": "TaskAward",
+    "value": "BusinessTaskAward",
+    "desc": "功能：领取reward字段配置的奖励\n说明：该类型为默认值，即不配置该字段默认领取reward字段配置的奖励"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.moneyboxes.MoneyBoxManagerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "MoneyBoxManagerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.common.CloseAddTagTask",
+    "type": "Task",
     "value": "CloseAddTagTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.EvertDayResetChildMetricLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "EvertDayResetChildMetricLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
+  },
+  {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.picture.PicturePieceAward",
+    "type": "TaskAward",
+    "value": "PicturePieceAward",
+    "desc": "任务奖励节点"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.ScheduleManagerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "ScheduleManagerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.battlePass.BPCycleVipItemTask",
+    "type": "ConditionTask",
     "value": "BPCycleVipItemTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.game.activity.core.task.ScheduleTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "ScheduleTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.verify.ConveneUserDynamicTask",
+    "type": "ConditionTask",
     "value": "ConveneUserDynamicTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.multBp.MultBpEveryWeekManagerLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "MultBpEveryWeekManagerLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.common.RedBaseAward",
+    "type": "TaskAward",
+    "value": "RedBaseAward",
+    "desc": "任务奖励节点"
+  },
+  {
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.common.MailSendRemedyRewardTask",
+    "type": "ConditionTask",
     "value": "MailSendRemedyRewardTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.draw.DrawRewardTask",
+    "type": "Task",
     "value": "DrawRewardTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.NotifyCloseActTask",
+    "type": "Task",
     "value": "NotifyCloseActTask",
     "desc": "Task节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.MaterialTransformTask",
+    "type": "Task",
     "value": "MaterialTransformTask",
     "desc": "Task节点"
   },
@@ -889,73 +1067,108 @@
     "subRequireField": ["timeType", "startTime", "endTime"],
     "inheritance": ["Task", "ScheduleTask"],
     "className": "com.syyx.tpf.business.activity.task.newbie.NewbieShopScheduleLayerTask",
-    "type": "定时分层节点",
+    "type": "ScheduleTask",
     "value": "NewbieShopScheduleLayerTask",
     "desc": "定时分层节点：根据子节点开始时间排序，当子节点到达开启时间时，开启子节点（开始监听事件），子节点要求配置时间字段"
   },
   {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.dailyChallenge.old.IntegralAward",
+    "type": "TaskAward",
+    "value": "IntegralAward",
+    "desc": "任务奖励节点"
+  },
+  {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.reward.ActItemReward",
+    "type": "TaskAward",
+    "value": "ActItemReward",
+    "desc": "任务奖励节点"
+  },
+  {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.ttm.TtmWeaponManageLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "TtmWeaponManageLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
+  },
+  {
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.draw.DrawTaskAward",
+    "type": "TaskAward",
+    "value": "DrawTaskAward",
+    "desc": "任务奖励节点"
   },
   {
     "inheritance": ["Task"],
     "className": "com.syyx.tpf.business.activity.task.QueryItemNumTask",
+    "type": "Task",
     "value": "QueryItemNumTask",
     "desc": "Task节点"
   },
   {
-    "inheritance": ["Task"],
-    "className": "com.syyx.tpf.business.activity.task.red.ItemCountRedPointTask",
-    "value": "ItemCountRedPointTask",
-    "desc": "Task节点"
+    "inheritance": ["TaskAward"],
+    "className": "com.syyx.tpf.business.activity.task.draw.DrawInfoAward",
+    "type": "TaskAward",
+    "value": "DrawInfoAward",
+    "desc": "任务奖励节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
+    "className": "com.syyx.tpf.business.activity.task.red.ItemCountRedPointTask",
+    "type": "ConditionTask",
+    "value": "ItemCountRedPointTask",
+    "desc": "条件任务节点"
+  },
+  {
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.shop.TriggerCanBuyTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "TriggerCanBuyTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.RechargeFixLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "RechargeFixLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.EvertDayResetChildLayerTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "EvertDayResetChildLayerTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.sync.SyncRootTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "SyncRootTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.shop.VipCardAwardTask",
+    "type": "ConditionTask",
     "value": "VipCardAwardTask",
-    "desc": "Task节点"
+    "desc": "条件任务节点"
   },
   {
-    "inheritance": ["Task"],
+    "inheritance": ["Task", "AbstractConditionTask", "DynamicConditionTask"],
     "className": "com.syyx.tpf.business.activity.task.MultipleDynamicConditionTask",
+    "requireField": ["condition", "targetProcess"],
+    "type": "ConditionTask",
     "value": "MultipleDynamicConditionTask",
-    "desc": "Task节点"
+    "desc": "功能：动态任务节点\n说明：该任务可以支持配置任务类型taskType(见下面TaskType类型列表)并监听对应游戏事件，并可配置condition指定任务的达成条件，condition配置表会去使用ActivityConditionRule配置表的规则检查上报的事件是否可以添加任务进度"
   },
   {
     "inheritance": ["Task", "LayerTask"],
     "className": "com.syyx.tpf.business.activity.task.multBp.MultBpRootTask",
-    "type": "直接分层节点",
+    "type": "LayerTask",
     "value": "MultBpRootTask",
-    "desc": "直接分层节点：当前节点打开时，直接打开子节点（开始监听事件）"
+    "desc": "层级节点：任务开启时其子任务直接开启"
   }
 ]

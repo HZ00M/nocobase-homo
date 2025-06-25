@@ -26,7 +26,9 @@ export const TaskMetaProvider: React.FC = ({ children }) => {
   };
 
   return (
-    <TaskMetaContext.Provider value={{ taskMetas, taskMetasRef, setTaskMetas }}>{children}</TaskMetaContext.Provider>
+    <TaskMetaContext.Provider value={{ taskMetas: taskMetas, taskMetasRef, setTaskMetas }}>
+      {children}
+    </TaskMetaContext.Provider>
   );
 };
 

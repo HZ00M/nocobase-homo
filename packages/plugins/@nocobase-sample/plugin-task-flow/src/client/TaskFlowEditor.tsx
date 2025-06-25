@@ -15,20 +15,11 @@ import { TaskMetaProvider, useTaskMetas } from './TaskMetaContext';
 import { TaskIdGenerator } from './TaskIdGenerator';
 import { useTaskNodes } from './useTaskNodes';
 import { ReactFlowProvider } from 'reactflow';
-
+import { AwardMetaProvider, useAwardMetas } from './AwardMetaContext';
 const InnerTaskFlowEditor = () => {
   const api = useAPIClient();
   const idGenRef = useRef(new TaskIdGenerator([]));
   const taskNodesApi = useTaskNodes(idGenRef.current); // ✅ 这时 Context 已挂载
-  const { setTaskMetas } = useTaskMetas();
-
-  // useEffect(() => {
-  //   const fetch = async () => {
-  //     const res = await api.resource('act_task_type').list({ pageSize: 1000 });
-  //     setTaskMetas(res?.data?.data || []);
-  //   };
-  //   fetch();
-  // }, []);
 
   return <TaskDesigner {...taskNodesApi} />;
 };
@@ -37,7 +28,9 @@ export const TaskFlowEditor = () => {
   return (
     <ReactFlowProvider>
       <TaskMetaProvider>
-        <InnerTaskFlowEditor />
+        <AwardMetaProvider>
+          <InnerTaskFlowEditor />
+        </AwardMetaProvider>
       </TaskMetaProvider>
     </ReactFlowProvider>
   );

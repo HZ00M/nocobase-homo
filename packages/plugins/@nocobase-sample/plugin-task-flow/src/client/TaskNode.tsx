@@ -7,11 +7,12 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { TaskMeta, TaskData } from './types';
-import { EditOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { Input } from 'antd';
+import { EditableField } from './EditableField';
+
 const getCardStyle = (selected: boolean): React.CSSProperties => ({
   border: selected ? '2px solid #1890ff' : '1px solid #ddd',
   borderRadius: 6,
@@ -41,6 +42,7 @@ const secondaryButtonStyle: React.CSSProperties = {
 };
 
 export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, id, selected }) => {
+  const { label, taskId, setNodeField } = data;
   return (
     <div
       style={getCardStyle(selected)}
@@ -59,49 +61,15 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
         }}
       />
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        {data.editing ? (
-          <>
-            <Input
-              size="small"
-              value={data.tempLabel}
-              onChange={(e) => data.onChangeTempLabel?.(e.target.value)}
-              onPressEnter={() => data.onConfirmEditLabel?.()}
-              style={{ flex: 1, marginRight: 4 }}
-            />
-            <CheckOutlined
-              onClick={(e) => {
-                e.stopPropagation();
-                data.onConfirmEditLabel?.();
-              }}
-              style={{ color: '#1890ff', cursor: 'pointer', marginRight: 4 }}
-            />
-            <CloseOutlined
-              onClick={(e) => {
-                e.stopPropagation();
-                data.onCancelEditLabel?.();
-              }}
-              style={{ color: '#aaa', cursor: 'pointer' }}
-            />
-          </>
-        ) : (
-          <>
-            <div style={{ fontWeight: 'bold', fontSize: '14px', flex: 1 }}>{data.label}</div>
-            <EditOutlined
-              onClick={(e) => {
-                e.stopPropagation();
-                data.onStartEditLabel?.();
-              }}
-              style={{ color: '#1890ff', marginLeft: 4, cursor: 'pointer' }}
-            />
-          </>
-        )}
-      </div>
-
+      <EditableField value={label} fieldName="label" onSave={(fieldName, val) => setNodeField?.(id, fieldName, val)} />
       <div style={{ fontSize: '12px', color: '#333', marginBottom: 8, lineHeight: 1.4 }}>
         <div>
           <strong>任务ID：</strong>
-          {data.taskId}
+          <EditableField
+            value={taskId}
+            fieldName="taskId"
+            onSave={(fieldName, val) => setNodeField?.(id, fieldName, val)}
+          />
         </div>
         <div>
           <strong>任务类型：</strong>
@@ -133,6 +101,15 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
           }}
         >
           添加
+        </button>
+        <button
+          style={{ ...secondaryButtonStyle, backgroundColor: '#108ee9', color: '#fff' }}
+          onClick={(e) => {
+            e.stopPropagation();
+            data.onEdit?.(id);
+          }}
+        >
+          编辑
         </button>
         <button
           style={{ ...secondaryButtonStyle, backgroundColor: '#e74c3c', color: '#fff' }}

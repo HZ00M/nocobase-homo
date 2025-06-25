@@ -1,3 +1,12 @@
+/**
+ * This file is part of the NocoBase (R) project.
+ * Copyright (c) 2020-2024 NocoBase Co., Ltd.
+ * Authors: NocoBase Team.
+ *
+ * This project is dual-licensed under AGPL-3.0 and NocoBase Commercial License.
+ * For more information, please refer to: https://www.nocobase.com/agreement.
+ */
+
 import React, { useEffect, useMemo, useState } from 'react';
 import { Input, Modal, Button, Tooltip, Empty } from 'antd';
 import { SearchOutlined, ExpandOutlined } from '@ant-design/icons';
@@ -5,6 +14,7 @@ import { useAPIClient } from '@nocobase/client';
 import { TaskMeta } from './types';
 import { TaskMetaUpload } from './TaskMetaUpload';
 import { useTaskMetas } from './TaskMetaContext';
+import { useAwardMetas } from './AwardMetaContext';
 
 interface TaskMetaSelectorProps {
   onAddTask?: (parentId: string, task: TaskMeta) => void;
@@ -13,20 +23,25 @@ interface TaskMetaSelectorProps {
 export const TaskMetaOperator: React.FC<TaskMetaSelectorProps> = ({ onAddTask }) => {
   const api = useAPIClient();
   const { taskMetas, setTaskMetas } = useTaskMetas();
-  // const [taskMetas, setTaskMetas] = useState<TaskMeta[]>([]);
+  const { awardMetas, setAwardMetas } = useAwardMetas();
   const [searchText, setSearchText] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     fetchTaskMeta();
+    fetchAwardMeta();
   }, []);
-  useEffect(() => {
-    console.log('taskMetas 更新了:', taskMetas);
-  }, [taskMetas]);
   const fetchTaskMeta = async () => {
     const res = await api
       .resource('act_task_type')
-      .list({ pageSize: 1000 })
+      .list({
+        pageSize: 1000,
+        filter: {
+          type: {
+            $ne: 'TaskAward',
+          },
+        },
+      })
       .then((res) => {
         const data = res?.data?.data || [];
         setTaskMetas(data);
@@ -35,7 +50,22 @@ export const TaskMetaOperator: React.FC<TaskMetaSelectorProps> = ({ onAddTask })
         console.log('fetched task metas:', taskMetas);
       });
   };
-
+  const fetchAwardMeta = async () => {
+    const res = await api
+      .resource('act_task_type')
+      .list({
+        pageSize: 1000,
+        filter: {
+          type: {
+            $eq: 'TaskAward',
+          },
+        },
+      })
+      .then((res) => {
+        const data = res?.data?.data || [];
+        setAwardMetas(data);
+      });
+  };
   const getMatchScore = (item: TaskMeta, keyword: string) => {
     const lower = keyword.toLowerCase();
     const exact = (v?: string) => v?.toLowerCase() === lower;
@@ -142,7 +172,12 @@ export const TaskMetaOperator: React.FC<TaskMetaSelectorProps> = ({ onAddTask })
         styles={{ body: { padding: 0 } }}
       >
         <div style={{ padding: 16 }}>
-          <TaskMetaUpload />
+          <TaskMetaUpload
+            onSuccess={() => {
+              fetchTaskMeta();
+              fetchAwardMeta();
+            }}
+          />
           <Input
             allowClear
             placeholder="搜索任务元数据（value/type/desc/mark）"

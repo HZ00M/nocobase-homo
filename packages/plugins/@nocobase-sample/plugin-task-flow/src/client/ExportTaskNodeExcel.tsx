@@ -108,6 +108,7 @@ const ExportTaskNodeExcel: React.FC<ExportTaskNodeExcelProps> = ({ nodes }) => {
           ...node.data,
           id: index + 1, // 序号作为 id（K）
           activityId, // 统一 activityId
+          extraInfo: JSON.stringify(node.data.extraInfo), // 额外信息转为 JSON 字符串
         };
 
         return fieldKeys.map((key) => data[key] ?? '');

@@ -13,8 +13,14 @@ export interface TaskMeta {
   type?: string;
   desc?: string;
   mark?: string;
-
-  [key: string]: any;
+  className?: string;
+  inheritance: object;
+  include: string;
+  exclude: string;
+  require: string;
+  requireField: string;
+  preRequireField: string;
+  subRequireField: string;
 }
 
 export interface TaskData {

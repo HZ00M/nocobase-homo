@@ -46,13 +46,15 @@ export const TaskDesigner: React.FC<UseTaskNodes> = (props) => {
     resetNodeInfo,
     onConnect,
     onInit,
-    editingNodeId, // ✅ 从 props 接收
+    selectedNodeId,
+    editingNode, // 供父组件控制弹窗显示用
+    onOpenEditModal, // 给节点组件调用，打开弹窗
+    setEditingNode, // 取消弹窗时用
   } = props;
 
   const tmplFetchRef = useRef<() => void>();
   const schema = useFieldSchema();
   const schemaUid = schema?.['x-uid'];
-  const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [editVisible, setEditVisible] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -147,20 +149,16 @@ export const TaskDesigner: React.FC<UseTaskNodes> = (props) => {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
+          zoomOnDoubleClick={false}
           onNodeClick={(event, node) => {
-            if (editingNodeId) return; // ✅ 禁用点击选中
+            if (selectedNodeId) return; // ✅ 禁用点击选中
             event.preventDefault();
             onNodeSelect(node.id);
           }}
-          onNodeDoubleClick={(event, node) => {
-            if (editingNodeId) return; // ✅ 禁用双击编辑
-            setEditingNode(node);
-            setEditVisible(true);
-          }}
           onPaneClick={() => onNodeSelect(null)}
-          nodesDraggable={!editingNodeId}
-          elementsSelectable={!editingNodeId}
-          panOnDrag={!editingNodeId}
+          nodesDraggable={!selectedNodeId}
+          elementsSelectable={!selectedNodeId}
+          panOnDrag={!selectedNodeId}
           fitView
           attributionPosition="bottom-left"
         >
@@ -177,17 +175,13 @@ export const TaskDesigner: React.FC<UseTaskNodes> = (props) => {
       </div>
 
       <EditTaskModal
-        visible={editVisible}
+        visible={!!editingNode}
         node={editingNode}
         onSave={(updatedNode) => {
           setNodes((nds) => nds.map((n) => (n.id === updatedNode.id ? updatedNode : n)));
-          setEditVisible(false);
           setEditingNode(null);
         }}
-        onCancel={() => {
-          setEditVisible(false);
-          setEditingNode(null);
-        }}
+        onCancel={() => setEditingNode(null)}
       />
     </div>
   );

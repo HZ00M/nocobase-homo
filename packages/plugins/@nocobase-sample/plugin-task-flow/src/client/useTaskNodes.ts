@@ -22,15 +22,12 @@ export type UseTaskNodes = ReturnType<typeof useTaskNodes>;
 
 export function useTaskNodes(idGen: TaskIdGenerator) {
   const { taskMetasRef } = useTaskMetas();
-  const [editingNodeLabel, setEditingNodeLabel] = useState<string | null>(null);
-  const [tempLabel, setTempLabel] = useState<string>('');
-  const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance>();
   const flowResource = useResource('act_task_flow');
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-
+  const [editingNode, setEditingNode] = useState<Node | null>(null);
   // ReactFlow 初始化时设置实例
   const onInit = (instance: ReactFlowInstance) => {
     setReactFlowInstance(instance);
@@ -227,58 +224,43 @@ export function useTaskNodes(idGen: TaskIdGenerator) {
 
     setSelectedNodeId(nodeId);
   };
-
-  // 确认修改 label
-  const confirmEditLabel = (nodeId: string) => {
-    setNodes((prev) =>
-      prev.map((n) => {
-        if (n.id === nodeId) {
-          return {
-            ...n,
-            data: {
-              ...n.data,
-              label: tempLabel,
-            },
-          };
-        }
-        return n;
-      }),
-    );
-    setEditingNodeLabel(null);
-    setTempLabel('');
+  const onOpenEditModal = (nodeId: string) => {
+    const node = nodes.find((n) => n.id === nodeId) || null;
+    setEditingNode(node);
   };
 
-  // 取消编辑
-  const cancelEditLabel = () => {
-    setEditingNodeLabel(null);
-    setTempLabel('');
+  const setNodeField = (nodeId: string, fieldName: string, value: string) => {
+    setNodes((prev) =>
+      prev.map((n) =>
+        n.id === nodeId
+          ? {
+              ...n,
+              data: {
+                ...n.data,
+                [fieldName]: value,
+              },
+            }
+          : n,
+      ),
+    );
   };
 
   const getEnhancedNodes = () => {
-    return nodes.map((node) => {
-      const isEditing = node.id === editingNodeLabel;
-      return {
-        ...node,
-        selected: node.id === selectedNodeId,
-        data: {
-          ...node.data,
-          onAddChild: addNewTask,
-          onDelete: () => deleteNodeWithConfirm(node.id),
-          onSelect: () => onNodeSelect(node.id),
-          onToggleCollapse: () => toggleCollapse(node.id),
-          editing: isEditing,
-          tempLabel: isEditing ? tempLabel : '',
-          onStartEditLabel: () => {
-            setEditingNodeLabel(node.id);
-            setTempLabel(node.data.label);
-          },
-          onChangeTempLabel: (val: string) => setTempLabel(val),
-          onConfirmEditLabel: () => confirmEditLabel(node.id),
-          onCancelEditLabel: cancelEditLabel,
-        },
-      };
-    });
+    return nodes.map((node) => ({
+      ...node,
+      selected: node.id === selectedNodeId,
+      data: {
+        ...node.data,
+        onAddChild: addNewTask,
+        onEdit: () => onOpenEditModal(node.id),
+        onDelete: () => deleteNodeWithConfirm(node.id),
+        onSelect: () => onNodeSelect(node.id),
+        onToggleCollapse: () => toggleCollapse(node.id),
+        setNodeField, // 提供字段更新函数
+      },
+    }));
   };
+
   const deleteNode = (id: string) => {
     setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
     setNodes((nds) => {
@@ -491,6 +473,10 @@ export function useTaskNodes(idGen: TaskIdGenerator) {
     resetNodeInfo,
     onConnect,
     onInit,
-    editingNodeId: editingNodeLabel,
+    selectedNodeId,
+    editingNode,
+    onOpenEditModal,
+    setEditingNode,
+    setNodeField, // 可选暴露
   };
 }
