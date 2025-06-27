@@ -10,42 +10,90 @@
 import React, { useState, useEffect } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { TaskMeta, TaskData } from './types';
-import { Input } from 'antd';
+import { Input, Tooltip } from 'antd';
 import { EditableField } from './EditableField';
+import { CheckIcon } from './CheckIcon';
+import { calcOffsetDates } from './EditTaskModal';
+import { TimeStartTypeOptions } from './constants';
+import { EditableSelect } from './EditableSelect';
+import { useTaskNodesContext } from './TaskNodesContext';
 
-const getCardStyle = (selected: boolean): React.CSSProperties => ({
-  border: selected ? '2px solid #1890ff' : '1px solid #ddd',
+const getCardStyle = (selected: boolean, highlight?: boolean): React.CSSProperties => ({
+  border: highlight ? '2px dashed #f5222d' : selected ? '2px solid #1890ff' : '1px solid #ddd',
+  boxShadow: highlight
+    ? '0 0 6px rgba(255,0,0,0.6)'
+    : selected
+      ? '0 0 0 4px rgba(24, 144, 255, 0.2)'
+      : '0 2px 8px rgba(0,0,0,0.1)',
+  transition: 'box-shadow 0.3s ease-in-out',
   borderRadius: 6,
   padding: 12,
   backgroundColor: '#fff',
   fontSize: 14,
   width: 220,
-  boxShadow: selected ? '0 0 0 4px rgba(24, 144, 255, 0.2)' : '0 2px 8px rgba(0,0,0,0.1)',
   userSelect: 'none',
   cursor: 'pointer',
 });
-
-const buttonStyle: React.CSSProperties = {
+const getButtonStyle = (bgColor: string): React.CSSProperties => ({
   flex: '1 1 auto',
   padding: '6px 12px',
   borderRadius: 4,
   border: 'none',
-  backgroundColor: '#1890ff',
-  color: '#fff',
   cursor: 'pointer',
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  ...buttonStyle,
-  backgroundColor: '#f0f0f0',
-  color: '#333',
-};
-
+  backgroundColor: bgColor,
+  color: '#fff',
+});
 export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, id, selected }) => {
-  const { label, taskId, setNodeField } = data;
+  const { nodes, setNodes, nodeOptions } = useTaskNodesContext();
+  const { label, taskId, setNodeField, checkResult } = data;
+  const updateTaskIdInfo = (nodeId: string, fieldName: string, value: any) => {
+    setNodes((curNodes) => {
+      // 找到当前节点
+      const node = curNodes.find((n) => n.id === nodeId);
+      if (!node) return curNodes;
+      const oldValue = node.data[fieldName];
+
+      // 先更新当前节点字段
+      const updatedNodes = curNodes.map((n) => {
+        if (n.id === nodeId) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              [fieldName]: value,
+            },
+          };
+        }
+        return n;
+      });
+      if (fieldName === 'taskId' && oldValue !== value) {
+        return updatedNodes.map((n) => {
+          const newData = { ...n.data };
+          let changed = false;
+          if (newData.promiseTaskId === oldValue) {
+            newData.promiseTaskId = value;
+            changed = true;
+          }
+          if (newData.parentTaskId === oldValue) {
+            newData.parentTaskId = value;
+            changed = true;
+          }
+          if (changed) {
+            return {
+              ...n,
+              data: newData,
+            };
+          }
+          return n;
+        });
+      }
+
+      return updatedNodes;
+    });
+  };
   return (
     <div
-      style={getCardStyle(selected)}
+      style={getCardStyle(selected, data.highlight)}
       onClick={(e) => {
         e.stopPropagation();
         data.onSelect?.(id);
@@ -60,42 +108,88 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
           top: -6, // 微调位置避免与边框重叠
         }}
       />
+      <CheckIcon
+        result={checkResult}
+        onClick={(id) => {
+          data.onCheck?.(id);
+        }}
+      />
+      <div
+        style={{
+          fontSize: 16,
+          fontWeight: 600,
+          color: '#1f1f1f',
+          marginBottom: 8,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        <EditableField
+          value={label}
+          fieldName="label"
+          onSave={(fieldName, val) => setNodeField?.(id, fieldName, val)}
+        />
+      </div>
 
-      <EditableField value={label} fieldName="label" onSave={(fieldName, val) => setNodeField?.(id, fieldName, val)} />
-      <div style={{ fontSize: '12px', color: '#333', marginBottom: 8, lineHeight: 1.4 }}>
-        <div>
-          <strong>任务ID：</strong>
+      <div style={{ fontSize: '12px', color: '#333', marginBottom: 8, lineHeight: 1.6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <strong style={{ whiteSpace: 'nowrap' }}>任务ID：</strong>
           <EditableField
             value={taskId}
             fieldName="taskId"
-            onSave={(fieldName, val) => setNodeField?.(id, fieldName, val)}
+            onSave={(fieldName, val) => {
+              updateTaskIdInfo(id, fieldName, val);
+            }}
           />
         </div>
-        <div>
-          <strong>任务类型：</strong>
-          {data.nodeType}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <strong style={{ whiteSpace: 'nowrap' }}>任务类型：</strong>
+          <span>{data.nodeType}</span>
         </div>
-        <div>
-          <strong>开始时间：</strong>
-          {data.startTime}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <strong style={{ whiteSpace: 'nowrap' }}>开启类型：</strong>
+          <span>{TimeStartTypeOptions.find((opt) => opt.value === data.timeType)?.label || '未知'}</span>
         </div>
-        <div>
-          <strong>结束时间：</strong>
-          {data.endTime}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <strong style={{ whiteSpace: 'nowrap' }}>开始时间：</strong>
+          <span>{calcOffsetDates(data.timeType, data.startTime, data.offsetTime)}</span>
         </div>
-        <div>
-          <strong>父任务ID：</strong>
-          {data.parentTaskId || '无'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <strong style={{ whiteSpace: 'nowrap' }}>结束时间：</strong>
+          <span>{calcOffsetDates(data.timeType, data.endTime, data.offsetTime)}</span>
         </div>
-        <div>
-          <strong>前置任务ID：</strong>
-          {data.promiseTaskId || '无'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <strong style={{ whiteSpace: 'nowrap' }}>父任务ID：</strong>
+          <span>{data.parentTaskId || '无'}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <strong style={{ whiteSpace: 'nowrap' }}>前置任务ID：</strong>
+          <EditableSelect
+            value={data.promiseTaskId}
+            fieldName={'promiseTaskId'}
+            options={nodeOptions}
+            onSave={(fieldName, val) => setNodeField?.(id, fieldName, val)}
+          ></EditableSelect>
+          {/*<span>{data.promiseTaskId || '无'}</span>*/}
         </div>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         <button
-          style={buttonStyle}
+          style={{
+            flex: '1 1 auto',
+            padding: '6px 12px',
+            borderRadius: 4,
+            border: 'none',
+            cursor: 'pointer',
+            backgroundColor: '#52c41a', // 绿色
+            color: '#fff',
+          }}
           onClick={() => {
             data.onAddChild?.(id);
           }}
@@ -103,7 +197,7 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
           添加
         </button>
         <button
-          style={{ ...secondaryButtonStyle, backgroundColor: '#108ee9', color: '#fff' }}
+          style={getButtonStyle('#108ee9')}
           onClick={(e) => {
             e.stopPropagation();
             data.onEdit?.(id);
@@ -111,14 +205,17 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
         >
           编辑
         </button>
-        <button
-          style={{ ...secondaryButtonStyle, backgroundColor: '#e74c3c', color: '#fff' }}
-          onClick={() => data.onDelete?.(id)}
-        >
+        <button style={getButtonStyle('#e74c3c')} onClick={() => data.onDelete?.(id)}>
           删除
         </button>
         <button
-          style={secondaryButtonStyle}
+          style={{
+            ...getButtonStyle('#faad14'), // 明亮的黄色
+            color: '#000',
+            fontWeight: 500,
+            border: '1px solid #d48806',
+            backgroundColor: '#fffbe6',
+          }}
           onClick={(e) => {
             e.stopPropagation();
             data.onToggleCollapse?.(id);
@@ -140,6 +237,7 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
     </div>
   );
 };
+
 const handleStyle: React.CSSProperties = {
   width: 12,
   height: 12,

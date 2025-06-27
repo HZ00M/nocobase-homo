@@ -104,11 +104,13 @@ const ExportTaskNodeExcel: React.FC<ExportTaskNodeExcelProps> = ({ nodes }) => {
       }
 
       const dataRows = nodes.map((node, index) => {
+        const extraInfoStr =
+          node.data.extraInfo && Object.keys(node.data.extraInfo).length > 0 ? JSON.stringify(node.data.extraInfo) : ''; // 没字段时赋空字符串
         const data = {
           ...node.data,
           id: index + 1, // 序号作为 id（K）
           activityId, // 统一 activityId
-          extraInfo: JSON.stringify(node.data.extraInfo), // 额外信息转为 JSON 字符串
+          extraInfo: extraInfoStr,
         };
 
         return fieldKeys.map((key) => data[key] ?? '');
@@ -132,7 +134,7 @@ const ExportTaskNodeExcel: React.FC<ExportTaskNodeExcelProps> = ({ nodes }) => {
 
   return (
     <>
-      <Button type="primary" onClick={() => setVisible(true)}>
+      <Button type="primary" ghost onClick={() => setVisible(true)}>
         导出配置
       </Button>
       <Modal

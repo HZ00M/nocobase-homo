@@ -7,7 +7,7 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { TaskMeta, TaskData } from './types';
 import ReactFlow, { Connection, useNodesState, useEdgesState, addEdge, Node, Edge, ReactFlowInstance } from 'reactflow';
 import { message, Modal } from 'antd';
@@ -20,7 +20,8 @@ import { useTaskMetas } from './TaskMetaContext';
 
 export type UseTaskNodes = ReturnType<typeof useTaskNodes>;
 
-export function useTaskNodes(idGen: TaskIdGenerator) {
+export function useTaskNodes() {
+  const idGenRef = useRef<TaskIdGenerator>(new TaskIdGenerator());
   const { taskMetasRef } = useTaskMetas();
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance>();
   const flowResource = useResource('act_task_flow');
@@ -32,9 +33,33 @@ export function useTaskNodes(idGen: TaskIdGenerator) {
   const onInit = (instance: ReactFlowInstance) => {
     setReactFlowInstance(instance);
   };
+  const nodeOptions = useMemo(() => {
+    return nodes
+      .filter((n) => n.data?.taskId)
+      .map((n) => ({
+        label: n.data.taskId,
+        value: n.data.taskId,
+      }));
+  }, [nodes]);
+  const highlightNode = (nodeId: string) => {
+    const targetNode = nodes.find((n) => n.id === nodeId);
+    if (targetNode && reactFlowInstance) {
+      // reactFlowInstance.setCenter(targetNode.position.x, targetNode.position.y, {
+      //   zoom: 1.5,
+      //   duration: 500,
+      // });
+      setNodes((nds) => nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, highlight: true } } : n)));
+
+      // 去除高亮
+      setTimeout(() => {
+        setNodes((nds) => nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, highlight: false } } : n)));
+      }, 3000);
+    }
+  };
+
   const layoutPyramid = (allNodes: Node[]): Node[] => {
     const gapX = 280;
-    const gapY = 220;
+    const gapY = 280;
 
     // 用 Map 复制每个节点，避免原始引用修改污染隐藏节点
     const nodeMap = new Map<string, Node>();
@@ -97,7 +122,7 @@ export function useTaskNodes(idGen: TaskIdGenerator) {
     // 操作节点ID
     const operationNodeId = parentId ?? selectedNodeId;
     const sameTypeCount = nodes.filter((n) => n.data?.nodeType === nodeType).length;
-    const incr = idGen.next(nodeType);
+    const incr = idGenRef.current.next(nodeType);
     const taskId = `${nodeType}_${incr}`;
     const newId = uuidv4();
     const parentNode = nodes.find((n) => n.id === operationNodeId);
@@ -256,6 +281,7 @@ export function useTaskNodes(idGen: TaskIdGenerator) {
         onDelete: () => deleteNodeWithConfirm(node.id),
         onSelect: () => onNodeSelect(node.id),
         onToggleCollapse: () => toggleCollapse(node.id),
+        onCheck: highlightNode,
         setNodeField, // 提供字段更新函数
       },
     }));
@@ -330,7 +356,7 @@ export function useTaskNodes(idGen: TaskIdGenerator) {
       // 映射模板内原始节点ID → 新ID
       tplNodes.forEach((node) => {
         const newNodeId = uuidv4();
-        const incr = idGen.next(node.data.nodeType);
+        const incr = idGenRef.current.next(node.data.nodeType);
         const newTaskId = `${node.data.nodeType}_${incr}`;
         idMap.set(node.id, newNodeId);
         taskIdMap.set(node.data.taskId, newTaskId);
@@ -423,7 +449,7 @@ export function useTaskNodes(idGen: TaskIdGenerator) {
     setNodes([]);
     setEdges([]);
     setSelectedNodeId(null);
-    idGen.reset();
+    idGenRef.current.reset();
     console.log('重置节点信息');
   };
   // 加到 useTaskNodes 返回值中
@@ -477,6 +503,7 @@ export function useTaskNodes(idGen: TaskIdGenerator) {
     editingNode,
     onOpenEditModal,
     setEditingNode,
-    setNodeField, // 可选暴露
+    setNodeField,
+    nodeOptions,
   };
 }

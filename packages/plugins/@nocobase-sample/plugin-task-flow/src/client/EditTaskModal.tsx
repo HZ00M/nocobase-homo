@@ -9,11 +9,11 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import {
+  Tooltip,
   message,
   Card,
   Modal,
   Form,
-  Tooltip,
   Input,
   InputNumber,
   Select,
@@ -25,13 +25,13 @@ import {
 } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import type { Node } from 'reactflow';
-import type { TaskData, TaskMeta } from './types';
+import type { Task, TaskData, TaskMeta } from './types';
 import dayjs from 'dayjs';
 import { TimeType, TimeStartTypeOptions } from './constants';
-import { TextArea } from '@nocobase/client/src/schema-component/antd/variable/TextArea';
 import { useTaskMetas } from './TaskMetaContext';
 import { useAwardMetas } from './AwardMetaContext';
 import { formatSecondsToDHMS } from './utils';
+import { TaskType, TaskTypeMeta } from './TaskTypeEnums';
 
 const { RangePicker } = DatePicker;
 
@@ -42,49 +42,77 @@ interface EditTaskModalProps {
   onCancel: () => void;
 }
 
+const isDayType = (timeType: number): boolean => {
+  const option = TimeStartTypeOptions.find((opt) => opt.value === timeType);
+  return option?.type === TimeType.day;
+};
+export const calcOffsetDates = (timeType: number, originTime: number, offsetTime = 0) => {
+  if (originTime == null || isNaN(originTime)) return '/';
+
+  let showValue = '';
+  if (isDayType(timeType)) {
+    const totalSeconds = originTime * 86400 + offsetTime;
+    showValue = formatSecondsToDHMS(totalSeconds);
+  } else {
+    const offsetDate = dayjs.unix(originTime).add(offsetTime, 'second');
+    showValue = offsetDate.isValid() ? offsetDate.format('YYYY-MM-DD HH:mm:ss') : '/';
+  }
+
+  return showValue;
+};
 export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onSave, onCancel }) => {
   const { taskMetas } = useTaskMetas();
   const { awardMetas } = useAwardMetas();
+  useEffect(() => {
+    if (!visible) {
+      form.resetFields();
+      setExtraInfoFields([]);
+      setRequiredKeys([]);
+    }
+  }, [visible]);
   const nodeTypeOptions = taskMetas.map((item) => ({
     label: item.value,
     value: item.value,
+    title: item.desc,
   }));
+
   const [form] = Form.useForm();
-  const [offsetDisplay, setOffsetDisplay] = useState('-');
-  const [selectedTaskMeta, setSelectedTaskMeta] = useState<TaskMeta | null>(null);
-  const [selectedAwardMeta, setSelectedAwardMeta] = useState<TaskMeta | null>(null);
+
   const [extraInfoFields, setExtraInfoFields] = useState<any[]>([]);
+
   const timeType = Form.useWatch('timeType', form);
   const offsetTime = Form.useWatch('offsetTime', form);
   const timeRange = Form.useWatch('timeRange', form);
-  const startDay = Form.useWatch('startDay', form);
-  const endDay = Form.useWatch('endDay', form);
+  const startTime = Form.useWatch('startTime', form);
+  const endTime = Form.useWatch('endTime', form);
+  const [offsetDisplay, setOffsetDisplay] = useState('-');
   const nodeType = Form.useWatch('nodeType', form);
   const rewardType = Form.useWatch('rewardType', form);
-  // 监听偏移相关字段变化，更新偏移显示
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setOffsetDisplay(calcOffsetDates());
-    }, 100); // 避免字段还没设置完
-    return () => clearTimeout(timeout);
-  }, [timeType, offsetTime, timeRange, startDay, endDay]);
-  const formFieldKeys = [
-    'label',
-    'desc',
+
+  const formFieldKeys: string[] = [
+    'parentId',
+    'activityId',
+    'parentTaskId',
+    'promiseTaskId',
+    'taskId',
     'nodeType',
-    'sortId',
     'taskType',
     'targetProcess',
-    'condition',
     'weight',
-    'timeType',
-    'startDay',
-    'endDay',
-    'timeRange',
-    'offsetTime',
+    'condition',
     'rewardType',
     'reward',
+    'desc',
+    'sortId',
+    'timeType',
+    'startTime',
+    'endTime',
+    'startTimeStr',
+    'endTimeStr',
+    'offsetTime',
+    'extraInfo',
   ];
+
   const [requiredKeys, setRequiredKeys] = useState<string[]>([]);
 
   function getRequireFields(taskMeta?: TaskMeta): string[] {
@@ -99,20 +127,46 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
     return Array.isArray(raw) ? raw : [];
   }
 
+  const taskTypeOptions = useMemo(
+    () =>
+      Object.values(TaskType).map((type) => {
+        const meta = TaskTypeMeta[type];
+        const fieldStr = Array.isArray(meta.fields) ? meta.fields.join(', ') : '';
+        return {
+          value: type,
+          label: `${type} (${meta.label})`,
+          title: `${meta.label}${fieldStr ? `，配置项：${fieldStr}` : ''}`,
+        };
+      }),
+    [],
+  );
+
   useEffect(() => {
     if (node) {
       const { data } = node;
-      form.setFieldsValue({
-        ...data,
-        timeRange: data.startTime && data.endTime ? [dayjs(data.startTime), dayjs(data.endTime)] : undefined,
-      });
-
+      if (isDayType(data.timeType)) {
+        // 天数偏移直接数字赋值
+        form.setFieldsValue({
+          ...data,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          timeRange: undefined,
+        });
+      } else {
+        // 非天数类型，确认时间戳单位，转换为dayjs对象数组（秒单位转dayjs）
+        const start = data.startTime ? dayjs.unix(data.startTime) : undefined;
+        const end = data.endTime ? dayjs.unix(data.endTime) : undefined;
+        form.setFieldsValue({
+          ...data,
+          timeRange: start && end ? [start, end] : undefined,
+          startTime: undefined,
+          endTime: undefined,
+        });
+      }
       if (data.extraInfo) {
         const allKeys = Object.keys(data.extraInfo || {});
         const taskMeta = taskMetas.find((item) => item.value === data.nodeType) || null;
         const awardMeta = awardMetas.find((item) => item.value === data.rewardType) || null;
-        setSelectedTaskMeta(taskMeta);
-        setSelectedAwardMeta(awardMeta);
 
         const requireFields1 = getRequireFields(taskMeta);
         const requireFields2 = getRequireFields(awardMeta);
@@ -120,10 +174,8 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
         setRequiredKeys(allRequireFields);
         const fixedKeys = allRequireFields.filter((key) => allKeys.includes(key));
 
-        // dynamic 字段 = allKeys - 固定字段 - 预设的form字段
         const dynamicKeys = allKeys.filter((key) => !formFieldKeys.includes(key) && !fixedKeys.includes(key));
 
-        // 给 form 赋值
         const fixedValueObj: Record<string, any> = {};
         fixedKeys.forEach((key) => {
           fixedValueObj[key] = data.extraInfo[key];
@@ -137,7 +189,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
         form.setFieldValue(['extraInfo', 'fixed'], fixedValueObj);
         form.setFieldValue(['extraInfo', 'dynamic'], dynamicValueArr);
 
-        // 只保留唯一的 fixed 字段
         const fixedFields = Array.from(new Set(fixedKeys)).map((key) => ({
           key,
           required: true,
@@ -150,19 +201,15 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
       form.resetFields();
     }
   }, [node]);
-
   useEffect(() => {
     const taskMeta = taskMetas.find((item) => item.value === nodeType) || null;
     const awardMeta = awardMetas.find((item) => item.value === rewardType) || null;
-    setSelectedTaskMeta(taskMeta);
-    setSelectedAwardMeta(awardMeta);
 
     const requireFields1 = getRequireFields(taskMeta);
     const requireFields2 = getRequireFields(awardMeta);
     const allRequireFields = Array.from(new Set([...(requireFields1 || []), ...(requireFields2 || [])]));
     setRequiredKeys(allRequireFields);
 
-    // 只设置字段的元信息，value不管，form初始化那里赋值
     const extraKeys = allRequireFields.filter((key) => !formFieldKeys.includes(key));
     const fixedFields = extraKeys.map((key) => ({
       key,
@@ -173,22 +220,44 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
   }, [nodeType, rewardType]);
 
   useEffect(() => {
-    if (isDayType(timeType)) {
-      const currentRange = form.getFieldValue('timeRange');
-      if (Array.isArray(currentRange) && dayjs.isDayjs(currentRange[0])) {
-        form.setFieldValue('timeRange', [0, 0]);
-      }
-    }
-  }, [timeType]);
+    const timeout = setTimeout(() => {
+      const show = isDayType(timeType)
+        ? `${calcOffsetDates(timeType, startTime, offsetTime)} ~ ${calcOffsetDates(timeType, endTime, offsetTime)}`
+        : timeRange && timeRange.length === 2
+          ? `${calcOffsetDates(timeType, dayjs(timeRange[0]).unix(), offsetTime)} ~ ${calcOffsetDates(
+              timeType,
+              dayjs(timeRange[1]).unix(),
+              offsetTime,
+            )}`
+          : '-';
+      setOffsetDisplay(show);
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, [timeType, startTime, endTime, timeRange, offsetTime]);
+
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      const { timeRange, extraInfo, ...rest } = values;
+      const { extraInfo, ...rest } = values;
+      // 合并额外信息
       const dynamicEntries = (extraInfo?.dynamic || []).reduce((acc: Record<string, string>, { key, value }) => {
         if (key) acc[key] = value;
         return acc;
       }, {});
+      let finalStartTime: number | undefined;
+      let finalEndTime: number | undefined;
 
+      if (isDayType(timeType)) {
+        // 天数类型：直接使用 startTime/endTime 数值
+        finalStartTime = Number(startTime ?? 0);
+        finalEndTime = Number(endTime ?? 0);
+      } else {
+        // 时间戳类型：将 timeRange 转为秒级时间戳
+        if (Array.isArray(timeRange) && timeRange.length === 2) {
+          finalStartTime = dayjs(timeRange[0]).unix();
+          finalEndTime = dayjs(timeRange[1]).unix();
+        }
+      }
       const fixedEntries = extraInfo?.fixed || {};
 
       const extraInfoObj = {
@@ -201,56 +270,52 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
         data: {
           ...node!.data,
           ...rest,
-          startTime: timeRange?.[0]?.format('YYYY-MM-DD HH:mm:ss') || '',
-          endTime: timeRange?.[1]?.format('YYYY-MM-DD HH:mm:ss') || '',
+          timeType,
+          startTime: finalStartTime,
+          endTime: finalEndTime,
           extraInfo: extraInfoObj,
         },
       };
       onSave(updatedNode);
-    } catch (err) {
+    } catch (err: any) {
       if (err.errorFields && err.errorFields.length > 0) {
         const firstError = err.errorFields[0];
         message.error(firstError.errors?.[0] || '表单验证失败');
       } else {
-        message.error('表单验证失败，请检查输入', err);
+        message.error('表单验证失败，请检查输入');
       }
       console.warn('Validation failed:', err);
     }
   };
-  const handleRewardTypeChange = (value: string) => {
-    const meta = awardMetas.find((item) => item.value === value);
-    setSelectedAwardMeta(meta || null);
-  };
-
-  const handleNodeTypeChange = (value: string) => {
-    const meta = taskMetas.find((item) => item.value === value);
-    setSelectedTaskMeta(meta || null);
-  };
-
-  const calcOffsetDates = () => {
-    if (offsetTime == null) return '-';
-
-    if (isDayType(timeType)) {
-      if (startDay == null || endDay == null) return '-';
-
-      // 计算开始和结束天数（秒数转成天，转成秒后加上offsetTime）
-      // 先转成秒数再加offset秒数，最后格式化显示
-      const startSeconds = startDay * 86400 + offsetTime;
-      const endSeconds = endDay * 86400 + offsetTime;
-
-      const startText = formatSecondsToDHMS(startSeconds);
-      const endText = formatSecondsToDHMS(endSeconds);
-
-      return `${startText} - ${endText}`;
-    }
-
-    if (Array.isArray(timeRange)) {
-      const start = dayjs(timeRange[0]).add(offsetTime, 'second').format('YYYY-MM-DD HH:mm:ss');
-      const end = dayjs(timeRange[1]).add(offsetTime, 'second').format('YYYY-MM-DD HH:mm:ss');
-      return `${start} ~ ${end}`;
-    }
-
-    return '-';
+  const getTimeFieldItem = (timeType: number | undefined, requiredKeys: string[]) => {
+    const isRequiredStart = requiredKeys.includes('startTime');
+    const isRequiredEnd = requiredKeys.includes('endTime');
+    return (
+      <Form.Item label="时间设置" required>
+        {isDayType(timeType) ? (
+          <Input.Group compact style={{ display: 'flex' }}>
+            <Form.Item
+              name="startTime"
+              noStyle
+              rules={isRequiredStart ? [{ required: true, message: '开始天数必填' }] : []}
+            >
+              <InputNumber min={0} style={{ width: '50%' }} placeholder="开始天（偏移）" />
+            </Form.Item>
+            <Form.Item
+              name="endTime"
+              noStyle
+              rules={isRequiredEnd ? [{ required: true, message: '结束天数必填' }] : []}
+            >
+              <InputNumber min={0} style={{ width: '50%' }} placeholder="结束天（偏移）" />
+            </Form.Item>
+          </Input.Group>
+        ) : (
+          <Form.Item name="timeRange" noStyle rules={[{ required: true, message: '请选择时间范围' }]}>
+            <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: '100%' }} />
+          </Form.Item>
+        )}
+      </Form.Item>
+    );
   };
 
   const createFieldItem = (requiredKeys: string[]) => {
@@ -265,11 +330,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
     );
   };
   const getFieldItem = useMemo(() => createFieldItem(requiredKeys), [requiredKeys]);
-
-  const isDayType = (val: any): boolean => {
-    const option = TimeStartTypeOptions.find((opt) => opt.value === val);
-    return option?.type === TimeType.day;
-  };
 
   return (
     <Modal
@@ -286,17 +346,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
             <Col span={12}>{getFieldItem('label', '标题', <Input />)}</Col>
             <Col span={12}>{getFieldItem('desc', '任务描述', <Input />)}</Col>
             <Col span={12}>
-              {getFieldItem(
-                'nodeType',
-                '节点类型',
-                <Select
-                  options={nodeTypeOptions}
-                  allowClear
-                  onChange={(value) => {
-                    handleNodeTypeChange(value);
-                  }}
-                />,
-              )}
+              {getFieldItem('nodeType', '节点类型', <Select showSearch options={nodeTypeOptions} allowClear />)}
             </Col>
             <Col span={12}>{getFieldItem('sortId', '任务排序', <InputNumber min={0} style={{ width: '100%' }} />)}</Col>
           </Row>
@@ -304,7 +354,13 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
 
         <Card title="任务条件" size="small" style={{ marginBottom: 16 }}>
           <Row gutter={16}>
-            <Col span={12}>{getFieldItem('taskType', '任务类型', <Select allowClear />)}</Col>
+            <Col span={12}>
+              {getFieldItem(
+                'taskType',
+                '任务类型',
+                <Select showSearch allowClear options={taskTypeOptions} placeholder="请选择任务类型" />,
+              )}
+            </Col>
             <Col span={12}>
               {getFieldItem('targetProcess', '达成值', <InputNumber min={0} style={{ width: '100%' }} />)}
             </Col>
@@ -315,27 +371,25 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
 
         <Card title="时间设置" size="small" style={{ marginBottom: 16 }}>
           <Row gutter={16}>
-            <Col span={12}>{getFieldItem('timeType', '时间类型', <Select options={TimeStartTypeOptions} />)}</Col>
-
             <Col span={12}>
-              {isDayType(timeType)
-                ? getFieldItem(
-                    'startEndDay',
-                    '第几天~第几天',
-                    <Input.Group compact style={{ display: 'flex' }}>
-                      <Form.Item name="startDay" noStyle>
-                        <InputNumber min={0} style={{ width: '50%' }} placeholder="开始天" />
-                      </Form.Item>
-                      <Form.Item name="endDay" noStyle>
-                        <InputNumber min={0} style={{ width: '50%' }} placeholder="结束天" />
-                      </Form.Item>
-                    </Input.Group>,
-                  )
-                : getFieldItem('timeRange', '时间范围', <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" />)}
+              {getFieldItem('timeType', '时间类型', <Select showSearch options={TimeStartTypeOptions} />)}
             </Col>
 
             <Col span={12}>
-              {getFieldItem('offsetTime', '偏移秒数', <InputNumber min={0} style={{ width: '100%' }} />)}
+              <Form.Item shouldUpdate>
+                {({ getFieldValue }) => {
+                  const currentTimeType = getFieldValue('timeType');
+                  return getTimeFieldItem(currentTimeType, requiredKeys);
+                }}
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              {getFieldItem(
+                'offsetTime',
+                '偏移秒数',
+                <InputNumber defaultValue={0} min={0} style={{ width: '100%' }} />,
+              )}
             </Col>
 
             <Col span={12}>
@@ -352,10 +406,13 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
                 '奖励类型',
                 <Select
                   allowClear
-                  options={awardMetas.map((meta) => ({ value: meta.value }))}
-                  onChange={(value) => {
-                    handleRewardTypeChange(value);
-                  }}
+                  showSearch
+                  placeholder="请选择奖励类型"
+                  options={awardMetas.map((meta) => ({
+                    value: meta.value,
+                    label: meta.value, // 显示文本
+                    title: meta.desc, // 鼠标悬停提示
+                  }))}
                 />,
               )}
             </Col>
@@ -365,13 +422,10 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
 
         <Card title="额外信息" size="small" style={{ marginBottom: 16 }}>
           <Row gutter={16}>
-            {/* 固定字段，横排布局，统一风格 */}
             {extraInfoFields.map(({ key, required }) => (
               <Col span={24} key={key}>
                 <Space align="baseline">
-                  {/* 字段名展示 */}
-                  <Input placeholder="字段名" disabled={true} value={key} />
-                  {/* 字段值输入 */}
+                  <Input placeholder="字段名" disabled value={key} />
                   <Form.Item
                     name={['extraInfo', 'fixed', key]}
                     rules={required ? [{ required: true, message: `${key} 为必填项` }] : []}
@@ -382,7 +436,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
               </Col>
             ))}
 
-            {/* 动态字段列表 */}
             <Col span={24}>
               <Form.List name={['extraInfo', 'dynamic']}>
                 {(fields, { add, remove }) => (

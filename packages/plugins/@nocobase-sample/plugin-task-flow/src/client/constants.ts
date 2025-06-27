@@ -74,7 +74,12 @@ export enum TimeType {
   time = 1,
   day = 2,
 }
-
+export enum TaskType {
+  Task = 0,
+  ConditionTask = 1,
+  ScheduleTask = 2,
+  LayerTask = 3,
+}
 export const TimeStartTypeOptions = [
   { label: '基于用户注册时间', value: TimeStartType.USER_REGISTER_TIME, type: TimeType.day },
   { label: '基于当前世界时间', value: TimeStartType.WORLD_TIME, type: TimeType.time },
@@ -116,17 +121,21 @@ export const TimeStartTypeOptions = [
   {
     label: '基于父任务开启后第n天开启（且前置任务开启）',
     value: TimeStartType.PARENT_TASK_START_DAY_WITH_PRE_TASK_START,
+    type: TimeType.day,
   },
   {
     label: '基于父任务开启后第n天开启（且前置任务完成）',
     value: TimeStartType.PARENT_TASK_START_DAY_WITH_PRE_TASK_COMPLETE,
+    type: TimeType.day,
   },
   {
     label: '基于父任务完成第n天开启（且前置任务开启）',
     value: TimeStartType.PARENT_TASK_COMPLETE_DAY_WITH_PRE_TASK_START,
+    type: TimeType.day,
   },
   {
     label: '基于父任务完成第n天开启（且前置任务完成）',
     value: TimeStartType.PARENT_TASK_COMPLETE_DAY_WITH_PRE_TASK_COMPLETE,
+    type: TimeType.day,
   },
 ];

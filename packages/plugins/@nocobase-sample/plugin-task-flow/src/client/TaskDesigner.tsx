@@ -8,29 +8,19 @@
  */
 
 import React, { useRef, useState } from 'react';
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  Node,
-  NodeChange,
-  OnNodesChange,
-  ReactFlowProvider,
-} from 'reactflow';
+import ReactFlow, { Background, Controls, MiniMap, NodeChange, OnNodesChange } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useFieldSchema } from '@formily/react';
 import { message, Modal } from 'antd';
 import { EditTaskModal } from './EditTaskModal';
 import { TaskNode } from './TaskNode';
-import { useTaskNodes } from './useTaskNodes';
 import { TaskMetaOperator } from './TaskMetaOperator';
 import { TemplateOperator } from './TemplateOperator';
 import { FlowControl } from './FlowControl';
-import { TaskIdGenerator } from './TaskIdGenerator';
-import type { UseTaskNodes } from './useTaskNodes';
-
+import { useTaskNodesContext } from './TaskNodesContext';
+import { getNodeColor } from './CheckIcon'; // 引入你的枚举
 const nodeTypes = { stacked: TaskNode };
-export const TaskDesigner: React.FC<UseTaskNodes> = (props) => {
+export const TaskDesigner: React.FC = () => {
   const {
     nodes,
     setNodes,
@@ -47,10 +37,9 @@ export const TaskDesigner: React.FC<UseTaskNodes> = (props) => {
     onConnect,
     onInit,
     selectedNodeId,
-    editingNode, // 供父组件控制弹窗显示用
-    onOpenEditModal, // 给节点组件调用，打开弹窗
-    setEditingNode, // 取消弹窗时用
-  } = props;
+    editingNode,
+    setEditingNode,
+  } = useTaskNodesContext();
 
   const tmplFetchRef = useRef<() => void>();
   const schema = useFieldSchema();
@@ -134,10 +123,9 @@ export const TaskDesigner: React.FC<UseTaskNodes> = (props) => {
       <div ref={reactFlowWrapper} style={{ flex: 1, position: 'relative' }}>
         <FlowControl
           clearCanvas={clearCanvas}
-          exportToJson={exportToJson}
-          importFromJson={importFromJson}
           layout={() => setNodes(layoutPyramid(nodes))}
           nodes={nodes}
+          setNodes={setNodes}
           edges={edges}
           tmplFetchRef={tmplFetchRef}
         />
@@ -163,13 +151,14 @@ export const TaskDesigner: React.FC<UseTaskNodes> = (props) => {
           attributionPosition="bottom-left"
         >
           <Controls position="top-right" />
-          <MiniMap
-            zoomable
-            pannable
-            position="bottom-right"
-            nodeColor="#52c41a"
-            nodeStrokeColor={(node) => (node.selected ? '#f5222d' : '#999')}
-          />
+          <div style={{ position: 'absolute', bottom: 10, right: 10, zIndex: 100 }}>
+            <MiniMap
+              zoomable
+              pannable
+              nodeColor={getNodeColor}
+              nodeStrokeColor={(node) => (node.selected ? '#f5222d' : '#999')}
+            />
+          </div>
           <Background variant={'dots' as any} gap={12} size={1} />
         </ReactFlow>
       </div>

@@ -9,6 +9,7 @@
 
 import React, { useState } from 'react';
 import { Button, Modal, Form, Input, message } from 'antd';
+
 import { useResource } from '@nocobase/client';
 import { transformNodesForSave } from './utils';
 interface SaveTemplateButtonProps {
@@ -57,8 +58,8 @@ export const SaveTemplateButton: React.FC<SaveTemplateButtonProps> = ({ nodes, e
 
   return (
     <>
-      <Button type="primary" size="middle" shape="round" onClick={openModal}>
-        保存为新模板
+      <Button type="primary" ghost size="middle" onClick={openModal}>
+        保存模板
       </Button>
       <Modal
         title="保存为新模板"

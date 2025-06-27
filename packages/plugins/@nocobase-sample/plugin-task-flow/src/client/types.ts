@@ -14,18 +14,15 @@ export interface TaskMeta {
   desc?: string;
   mark?: string;
   className?: string;
-  inheritance: object;
-  include: string;
-  exclude: string;
-  require: string;
-  requireField: string;
-  preRequireField: string;
-  subRequireField: string;
+  inheritance?: object;
+  include?: string;
+  exclude?: string;
+  require?: string;
+  requireField?: string;
+  preRequireField?: string;
+  subRequireField?: string;
 }
-
-export interface TaskData {
-  meta: TaskMeta;
-  label: string;
+export interface Task {
   parentId: string;
   activityId: string;
   parentTaskId: string;
@@ -41,13 +38,16 @@ export interface TaskData {
   desc: string;
   sortId: number;
   timeType: number;
-  startTime: string;
-  endTime: string;
+  startTime: number;
+  endTime: number;
   startTimeStr: string;
   endTimeStr: string;
   offsetTime: number;
   extraInfo: Record<string, any>;
-
+}
+export interface TaskData extends Task {
+  meta: TaskMeta;
+  label: string;
   [key: string]: any;
 }
 

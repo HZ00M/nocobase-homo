@@ -86,13 +86,14 @@ export function formatOffsetSeconds(seconds: number): string {
 }
 
 export function formatSecondsToDHMS(seconds: number): string {
+  if (seconds === 0) return '/';
   const day = Math.floor(seconds / 86400);
   const hour = Math.floor((seconds % 86400) / 3600);
   const minute = Math.floor((seconds % 3600) / 60);
   const second = seconds % 60;
 
   const parts = [];
-  if (day) parts.push(`${day}天`);
+  if (day) parts.push(`第${day}天`);
   if (hour) parts.push(`${hour}小时`);
   if (minute) parts.push(`${minute}分`);
   if (second || parts.length === 0) parts.push(`${second}秒`);
