@@ -16,6 +16,10 @@ export class PluginLogicFlowTestClient extends Plugin {
   async beforeLoad() {}
   async load() {
     this.registerFlowData();
+    this.app.router.add('task', {
+      path: '/task',
+      Component: TaskDataComponent,
+    });
   }
 
   registerFlowData() {

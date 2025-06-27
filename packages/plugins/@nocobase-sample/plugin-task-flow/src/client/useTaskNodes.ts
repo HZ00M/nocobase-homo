@@ -59,7 +59,7 @@ export function useTaskNodes() {
 
   const layoutPyramid = (allNodes: Node[]): Node[] => {
     const gapX = 280;
-    const gapY = 280;
+    const gapY = 300;
 
     // 用 Map 复制每个节点，避免原始引用修改污染隐藏节点
     const nodeMap = new Map<string, Node>();

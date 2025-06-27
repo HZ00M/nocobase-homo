@@ -11,14 +11,16 @@ import React, { useRef, useState } from 'react';
 import ReactFlow, { Background, Controls, MiniMap, NodeChange, OnNodesChange } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useFieldSchema } from '@formily/react';
-import { message, Modal } from 'antd';
+import { message, Modal, Button } from 'antd';
 import { EditTaskModal } from './EditTaskModal';
 import { TaskNode } from './TaskNode';
 import { TaskMetaOperator } from './TaskMetaOperator';
 import { TemplateOperator } from './TemplateOperator';
 import { FlowControl } from './FlowControl';
 import { useTaskNodesContext } from './TaskNodesContext';
-import { getNodeColor } from './CheckIcon'; // 引入你的枚举
+import { getNodeColor } from './CheckIcon';
+import TaskSidebarPanel from './TaskSidebarPanel';
+import TaskSidebar from './TaskSidebarPanel'; // 引入你的枚举
 const nodeTypes = { stacked: TaskNode };
 export const TaskDesigner: React.FC = () => {
   const {
@@ -44,8 +46,6 @@ export const TaskDesigner: React.FC = () => {
   const tmplFetchRef = useRef<() => void>();
   const schema = useFieldSchema();
   const schemaUid = schema?.['x-uid'];
-  const [editVisible, setEditVisible] = useState(false);
-  const [jsonText, setJsonText] = useState('');
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
   const handleNodesChange: OnNodesChange = (changes: NodeChange[]) => {
@@ -57,26 +57,6 @@ export const TaskDesigner: React.FC = () => {
       return change;
     });
     onNodesChange(snapped);
-  };
-
-  const exportToJson = () => {
-    const flow = { nodes, edges };
-    setJsonText(JSON.stringify(flow, null, 2));
-  };
-
-  const importFromJson = () => {
-    try {
-      const flow = JSON.parse(jsonText);
-      if (flow.nodes && flow.edges) {
-        setNodes(flow.nodes);
-        setEdges(flow.edges);
-        setTimeout(() => setNodes((nds) => layoutPyramid(nds)), 0);
-      } else {
-        alert('导入的 JSON 格式不正确');
-      }
-    } catch (e) {
-      alert('JSON 解析失败');
-    }
   };
 
   const clearCanvas = () => {
@@ -94,32 +74,13 @@ export const TaskDesigner: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', height: 800 }}>
-      {/* 左侧栏 */}
-      <div
-        style={{
-          width: 200,
-          height: '100%',
-          background: '#f5f5f5',
-          padding: 10,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div style={{ flex: 1, overflow: 'auto', marginBottom: 8 }}>
-          <TaskMetaOperator onAddTask={addNewTask} />
-        </div>
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          <TemplateOperator
-            onSelect={importTemplateById}
-            nodes={nodes}
-            edges={edges}
-            onRefetch={(refetchFn) => {
-              tmplFetchRef.current = refetchFn;
-            }}
-          />
-        </div>
-      </div>
-
+      <TaskSidebar
+        addNewTask={addNewTask}
+        importTemplateById={importTemplateById}
+        nodes={nodes}
+        edges={edges}
+        tmplFetchRef={tmplFetchRef}
+      />
       <div ref={reactFlowWrapper} style={{ flex: 1, position: 'relative' }}>
         <FlowControl
           clearCanvas={clearCanvas}

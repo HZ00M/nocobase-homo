@@ -14,16 +14,19 @@ import { TaskMetaProvider, useTaskMetas } from './TaskMetaContext';
 import { ReactFlowProvider } from 'reactflow';
 import { AwardMetaProvider, useAwardMetas } from './AwardMetaContext';
 import { TaskNodesProvider } from './TaskNodesContext';
+import { TaskConditionProvider } from './TaskConditionContext';
 
 export const TaskFlowEditor = () => {
   return (
     <ReactFlowProvider>
       <TaskMetaProvider>
-        <TaskNodesProvider>
-          <AwardMetaProvider>
-            <TaskDesigner />
-          </AwardMetaProvider>
-        </TaskNodesProvider>
+        <TaskConditionProvider>
+          <TaskNodesProvider>
+            <AwardMetaProvider>
+              <TaskDesigner />
+            </AwardMetaProvider>
+          </TaskNodesProvider>
+        </TaskConditionProvider>
       </TaskMetaProvider>
     </ReactFlowProvider>
   );

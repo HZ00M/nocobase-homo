@@ -36,12 +36,8 @@ interface TemplateSelectorProps {
 }
 
 export const TemplateOperator: React.FC<TemplateSelectorProps> = ({ onSelect, nodes, edges, onRefetch }) => {
-  const { taskMetas } = useTaskMetas();
-  // const [taskMetas, setTaskMetas] = useState<TaskMeta[]>([]);
   const flowResource = useResource('act_task_flow');
-  const [modalVisible, setModalVisible] = useState(false);
   const [moreVisible, setMoreVisible] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [form] = Form.useForm();
   const [templateList, setTemplateList] = useState<Template[]>([]);
@@ -199,33 +195,18 @@ export const TemplateOperator: React.FC<TemplateSelectorProps> = ({ onSelect, no
   );
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%', // ✅ 高度由调用者决定
-        padding: 12,
-        background: '#fefefe',
-        borderRadius: 8,
-        border: '1px solid #e0e0e0',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h4 style={{ margin: 0 }}>流程模板列表</h4>
-        <Button icon={<ExpandOutlined />} size="small" type="text" onClick={openMore}>
-          更多
-        </Button>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ flexShrink: 0, display: 'flex', gap: 8, marginBottom: 8 }}>
+        <Input
+          allowClear
+          placeholder="搜索"
+          prefix={<SearchOutlined />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ flex: 1 }}
+        />
+        <Button icon={<ExpandOutlined />} size="small" type="text" onClick={openMore}></Button>
       </div>
-
-      <Input
-        allowClear
-        placeholder="搜索模板"
-        prefix={<SearchOutlined />}
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        style={{ marginBottom: 8 }}
-      />
-
       {/* 外层列表：只读，不带编辑/删除 */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {filtered.length > 0 ? (

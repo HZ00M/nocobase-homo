@@ -32,7 +32,7 @@ import { useTaskMetas } from './TaskMetaContext';
 import { useAwardMetas } from './AwardMetaContext';
 import { formatSecondsToDHMS } from './utils';
 import { TaskType, TaskTypeMeta } from './TaskTypeEnums';
-
+import { ConditionSelector } from './TaskConditionSelector';
 const { RangePicker } = DatePicker;
 
 interface EditTaskModalProps {
@@ -333,6 +333,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
 
   return (
     <Modal
+      style={{ top: 40 }}
       open={visible}
       title="编辑任务"
       onOk={handleOk}
@@ -365,6 +366,9 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
               {getFieldItem('targetProcess', '达成值', <InputNumber min={0} style={{ width: '100%' }} />)}
             </Col>
             <Col span={12}>{getFieldItem('condition', '完成条件', <Input />)}</Col>
+            {/*<Col span={12}>*/}
+            {/*  {getFieldItem('condition', '完成条件', <ConditionSelector />)}*/}
+            {/*</Col>*/}
             <Col span={12}>{getFieldItem('weight', '任务权重', <InputNumber min={0} style={{ width: '100%' }} />)}</Col>
           </Row>
         </Card>

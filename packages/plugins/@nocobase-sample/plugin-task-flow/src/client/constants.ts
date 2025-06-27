@@ -74,12 +74,14 @@ export enum TimeType {
   time = 1,
   day = 2,
 }
+
 export enum TaskType {
   Task = 0,
   ConditionTask = 1,
   ScheduleTask = 2,
   LayerTask = 3,
 }
+
 export const TimeStartTypeOptions = [
   { label: '基于用户注册时间', value: TimeStartType.USER_REGISTER_TIME, type: TimeType.day },
   { label: '基于当前世界时间', value: TimeStartType.WORLD_TIME, type: TimeType.time },
@@ -138,4 +140,14 @@ export const TimeStartTypeOptions = [
     value: TimeStartType.PARENT_TASK_COMPLETE_DAY_WITH_PRE_TASK_COMPLETE,
     type: TimeType.day,
   },
+];
+export const ConditionOperatorOptions = [
+  { label: '等于（Equal）', value: 'Equal', as: '=' },
+  { label: '不等于（NotEqual）', value: 'NotEqual', as: '!=' },
+  { label: '大于（GreaterThan）', value: 'GreaterThan', as: '>' },
+  { label: '大于等于（GreaterThanOrEqual）', value: 'GreaterThanOrEqual', as: '>=' },
+  { label: '小于（LessThan）', value: 'LessThan', as: '<' },
+  { label: '小于等于（LessThanOrEqual）', value: 'LessThanOrEqual', as: '<=' },
+  { label: '逻辑与', value: 'and', as: '&&' },
+  { label: '逻辑或', value: 'or', as: '||' },
 ];
