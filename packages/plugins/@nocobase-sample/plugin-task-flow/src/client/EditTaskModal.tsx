@@ -33,7 +33,9 @@ import { useAwardMetas } from './AwardMetaContext';
 import { formatSecondsToDHMS } from './utils';
 import { TaskType, TaskTypeMeta } from './TaskTypeEnums';
 import { ConditionSelector } from './TaskConditionSelector';
+
 const { RangePicker } = DatePicker;
+import { operatorLabels, useReadableConditions } from './useReadableConditions';
 
 interface EditTaskModalProps {
   visible: boolean;
@@ -61,6 +63,8 @@ export const calcOffsetDates = (timeType: number, originTime: number, offsetTime
   return showValue;
 };
 export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onSave, onCancel }) => {
+  const { getReadableCondition } = useReadableConditions();
+  const [readableText, setReadableText] = useState<string>('');
   const { taskMetas } = useTaskMetas();
   const { awardMetas } = useAwardMetas();
   useEffect(() => {
@@ -365,10 +369,40 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
             <Col span={12}>
               {getFieldItem('targetProcess', '达成值', <InputNumber min={0} style={{ width: '100%' }} />)}
             </Col>
-            <Col span={12}>{getFieldItem('condition', '完成条件', <Input />)}</Col>
-            {/*<Col span={12}>*/}
-            {/*  {getFieldItem('condition', '完成条件', <ConditionSelector />)}*/}
-            {/*</Col>*/}
+            <Col span={12}>
+              <Form.Item
+                label="完成条件"
+                required={requiredKeys.includes('condition')}
+                style={{ marginBottom: 0 }}
+                help={
+                  readableText ? (
+                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap', color: '#ff4d4f' }}>{readableText}</pre>
+                  ) : null
+                }
+                validateStatus={readableText ? 'error' : undefined}
+              >
+                <Input.Group compact style={{ display: 'flex' }}>
+                  <Form.Item name="condition" noStyle>
+                    <Input placeholder="请输入条件ID" />
+                  </Form.Item>
+                  <Button
+                    type="default"
+                    onClick={() => {
+                      const id = form.getFieldValue('condition');
+                      if (!id) {
+                        setReadableText('请先填写条件ID');
+                        return;
+                      }
+                      const text = getReadableCondition(id);
+                      setReadableText(text || '未找到该条件');
+                    }}
+                  >
+                    检查
+                  </Button>
+                </Input.Group>
+              </Form.Item>
+            </Col>
+
             <Col span={12}>{getFieldItem('weight', '任务权重', <InputNumber min={0} style={{ width: '100%' }} />)}</Col>
           </Row>
         </Card>

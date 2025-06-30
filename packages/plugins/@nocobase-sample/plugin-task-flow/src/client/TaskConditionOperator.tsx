@@ -13,7 +13,7 @@ import { SearchOutlined, ExpandOutlined } from '@ant-design/icons';
 import { useAPIClient } from '@nocobase/client';
 import { TaskConditionUpload } from './TaskConditionUpload';
 import { useTaskConditions } from './TaskConditionContext';
-
+import { operatorLabels } from './useReadableConditions';
 interface TaskCondition {
   id: number;
   operator: string;
@@ -25,16 +25,7 @@ interface TaskCondition {
 interface TaskConditionOperatorProps {
   onSelectCondition?: (condition: TaskCondition) => void;
 }
-const operatorLabels: Record<string, string> = {
-  Equal: '=',
-  NotEqual: '!=',
-  GreaterThan: '>',
-  GreaterThanOrEqual: '≥',
-  LessThan: '<',
-  LessThanOrEqual: '≤',
-  and: 'AND',
-  or: 'OR',
-};
+
 export const TaskConditionOperator: React.FC<TaskConditionOperatorProps> = ({ onSelectCondition }) => {
   const api = useAPIClient();
   const [searchText, setSearchText] = useState('');
@@ -45,7 +36,7 @@ export const TaskConditionOperator: React.FC<TaskConditionOperatorProps> = ({ on
   }, []);
 
   const fetchConditions = async () => {
-    const res = await api.resource('act_task_condition').list({ pageSize: 1000 });
+    const res = await api.resource('act_task_condition').list({ pageSize: 3000 });
     const conditions = res?.data?.data;
     setTaskConditions(conditions || []);
   };
