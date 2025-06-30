@@ -9,6 +9,8 @@
 
 // useReadableConditions.ts
 import { useTaskConditions } from './TaskConditionContext';
+import { useAPIClient } from '@nocobase/client';
+import { useCallback } from 'react';
 
 export const operatorLabels: Record<string, string> = {
   Equal: '=',
@@ -22,29 +24,50 @@ export const operatorLabels: Record<string, string> = {
 };
 
 export function useReadableConditions() {
-  const { taskConditions } = useTaskConditions();
+  const api = useAPIClient();
+  const getConditionById = useCallback(
+    async (conditionId: string | number) => {
+      try {
+        const res = await api.resource('act_task_condition').get({ filterByTk: conditionId });
+        return res?.data?.data || null;
+      } catch (e) {
+        return null;
+      }
+    },
+    [api],
+  );
+  const getReadableCondition = useCallback(
+    async (conditionId: string | number, indentLevel = 0): Promise<string> => {
+      const indent = '  '.repeat(indentLevel);
 
-  const getReadableCondition = (conditionId: string | number, indentLevel = 0): string => {
-    const indent = '  '.repeat(indentLevel);
-    const condition = taskConditions.find((item) => String(item.id) === String(conditionId));
-    if (!condition) return `${indent}#${conditionId}: 未找到条件`;
+      try {
+        const res = await api.resource('act_task_condition').get({ filterByTk: conditionId });
+        const condition = res?.data?.data;
 
-    const op = operatorLabels[condition.operator] || condition.operator;
+        if (!condition) return `${indent}#${conditionId}: 未找到条件`;
 
-    if (condition.operator === 'and' || condition.operator === 'or') {
-      const subIds = String(condition.value || '')
-        .split(',')
-        .map((id) => id.trim())
-        .filter(Boolean);
+        const op = operatorLabels[condition.operator] || condition.operator;
 
-      const subTexts = subIds.map((id) => getReadableCondition(id, indentLevel + 1));
-      return `${indent}#${condition.id}: ${op} 条件组合\n${subTexts.join('\n')}`;
-    }
+        if (condition.operator === 'and' || condition.operator === 'or') {
+          const subIds = String(condition.value || '')
+            .split(',')
+            .map((id: string) => id.trim())
+            .filter(Boolean);
 
-    const val = Array.isArray(condition.value) ? condition.value.join(', ') : String(condition.value ?? '');
+          const subTexts = await Promise.all(subIds.map((id: string) => getReadableCondition(id, indentLevel + 1)));
 
-    return `${indent}#${condition.id}: ${condition.conditionType || '字段'} ${op} ${val}`;
-  };
+          return `${indent}#${condition.id}: ${op} 组合条件\n${subTexts.join('\n')}`;
+        }
 
-  return { getReadableCondition };
+        const val = Array.isArray(condition.value) ? condition.value.join(', ') : String(condition.value ?? '');
+
+        return `${indent}#${condition.id}: ${condition.conditionType || '字段'} ${op} ${val}`;
+      } catch (e) {
+        return `${indent}#${conditionId}: 查询失败`;
+      }
+    },
+    [api],
+  );
+
+  return { getConditionById, getReadableCondition };
 }

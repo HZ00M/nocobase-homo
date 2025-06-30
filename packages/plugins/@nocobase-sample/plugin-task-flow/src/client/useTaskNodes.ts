@@ -44,10 +44,10 @@ export function useTaskNodes() {
   const highlightNode = (nodeId: string) => {
     const targetNode = nodes.find((n) => n.id === nodeId);
     if (targetNode && reactFlowInstance) {
-      // reactFlowInstance.setCenter(targetNode.position.x, targetNode.position.y, {
-      //   zoom: 1.5,
-      //   duration: 500,
-      // });
+      reactFlowInstance.setCenter(targetNode.position.x, targetNode.position.y, {
+        zoom: 1.5,
+        duration: 500,
+      });
       setNodes((nds) => nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, highlight: true } } : n)));
 
       // 去除高亮
@@ -350,10 +350,12 @@ export function useTaskNodes() {
       const { data } = await flowResource.get({ filter: { id: templateId } });
       const tplNodes: Node<TaskData>[] = data?.data?.nodes || [];
       const tplEdges: Edge[] = data?.data?.edges || [];
+
       const idMap = new Map<string, string>();
       const taskIdMap = new Map<string, string>();
+      const tplTaskIdSet = new Set(tplNodes.map((n) => n.data.taskId));
 
-      // 映射模板内原始节点ID → 新ID
+      // 新 ID 映射
       tplNodes.forEach((node) => {
         const newNodeId = uuidv4();
         const incr = idGenRef.current.next(node.data.nodeType);
@@ -362,20 +364,24 @@ export function useTaskNodes() {
         taskIdMap.set(node.data.taskId, newTaskId);
       });
 
-      // 判断是否作为子任务插入
       const parentNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) : null;
-      const parentCollapsed = parentNode?.data.collapsed;
+      const parentCollapsed = parentNode?.data.collapsed === true;
 
-      // 更新节点
       const newNodes = tplNodes.map((node) => {
-        const newId = idMap.get(node.id)!;
+        const oldId = node.id;
+        const newId = idMap.get(oldId)!;
         const newTaskId = taskIdMap.get(node.data.taskId)!;
-        const newParentId = node.data.parentId ? idMap.get(node.data.parentId) || '' : '';
-        const newParentTaskId = node.data.parentTaskId ? taskIdMap.get(node.data.parentTaskId) || '' : '';
+
+        const isRootOfTemplate = !tplTaskIdSet.has(node.data.parentTaskId);
+        const newParentId = isRootOfTemplate && selectedNodeId ? selectedNodeId : idMap.get(node.data.parentId!) || '';
+        const newParentTaskId =
+          isRootOfTemplate && selectedNodeId
+            ? parentNode?.data.taskId || ''
+            : taskIdMap.get(node.data.parentTaskId!) || '';
+
         const taskMeta = taskMetasRef.current.find((meta) => meta.value === node.data.nodeType);
 
-        const isRootOfTemplate = !node.data.parentTaskId;
-        const shouldHide = parentCollapsed === true && isRootOfTemplate === false;
+        const shouldHide = parentCollapsed && !isRootOfTemplate;
 
         return {
           ...node,
@@ -387,8 +393,8 @@ export function useTaskNodes() {
           data: {
             ...node.data,
             taskId: newTaskId,
-            parentId: isRootOfTemplate && selectedNodeId ? selectedNodeId : newParentId,
-            parentTaskId: isRootOfTemplate && selectedNodeId ? parentNode?.data.taskId || '' : newParentTaskId,
+            parentId: newParentId,
+            parentTaskId: newParentTaskId,
             meta: taskMeta ?? {
               value: 'Task',
               type: 'unknown',
@@ -402,7 +408,6 @@ export function useTaskNodes() {
         };
       });
 
-      // 更新边
       const newEdges = tplEdges.map((edge) => ({
         ...edge,
         id: `edge-${idMap.get(edge.source)}-${idMap.get(edge.target)}`,
@@ -410,11 +415,15 @@ export function useTaskNodes() {
         target: idMap.get(edge.target)!,
         animated: true,
         type: 'default',
-        hidden: parentCollapsed === true, // 同样折叠时边也隐藏
+        hidden: parentCollapsed,
       }));
 
-      // 若当前有选中节点，将模板根节点连接过去
-      const tplRoot = newNodes.find((n) => !tplNodes.find((o) => o.data.taskId === n.data.parentTaskId));
+      // 自动连线模板根节点与当前选中节点
+      const newTaskIdToNodeMap = new Map(newNodes.map((n) => [n.data.taskId, n]));
+      const tplRoot = newNodes.find((n) => {
+        return !tplTaskIdSet.has(n.data.parentTaskId); // 确保 parentTaskId 不在模板内
+      });
+
       if (tplRoot && selectedNodeId) {
         newEdges.push({
           id: `edge-${selectedNodeId}-${tplRoot.id}`,
@@ -422,19 +431,14 @@ export function useTaskNodes() {
           target: tplRoot.id,
           type: 'default',
           animated: true,
-          hidden: parentCollapsed === true,
+          hidden: parentCollapsed,
         });
       }
 
-      // 合并并重新布局
       setNodes((nds) => layoutPyramid([...nds, ...newNodes]));
       setEdges((eds) => [...eds, ...newEdges]);
 
-      if (selectedNodeId) {
-        message.success('模板成功挂为子节点');
-      } else {
-        message.success('模板成功自由插入');
-      }
+      message.success(selectedNodeId ? '模板成功挂为子节点' : '模板成功自由插入');
     } catch (err) {
       console.error('导入模板失败', err);
       message.error('导入模板失败');
@@ -452,11 +456,19 @@ export function useTaskNodes() {
     idGenRef.current.reset();
     console.log('重置节点信息');
   };
-  // 加到 useTaskNodes 返回值中
   const onConnect = (connection: Connection) => {
     const { source, target } = connection;
 
     if (!source || !target) return;
+
+    // 获取 source 对应的 node，以便取出 taskId
+    const sourceNode = nodes.find((n) => n.id === source);
+    const sourceTaskId = sourceNode?.data?.taskId;
+
+    if (!sourceTaskId) {
+      console.warn(`无法从源节点 ${source} 获取 taskId`);
+      return;
+    }
 
     const newEdge: Edge = {
       ...connection,
@@ -468,7 +480,7 @@ export function useTaskNodes() {
     // 添加边
     setEdges((eds) => [...eds, newEdge]);
 
-    /// 仅更新目标节点的 parentTaskId，不重新布局
+    // 更新目标节点的 parentTaskId（逻辑连接）
     setNodes((nds) =>
       nds.map((node) =>
         node.id === target
@@ -476,7 +488,8 @@ export function useTaskNodes() {
               ...node,
               data: {
                 ...node.data,
-                parentTaskId: source,
+                parentId: source,
+                parentTaskId: sourceTaskId,
               },
             }
           : node,

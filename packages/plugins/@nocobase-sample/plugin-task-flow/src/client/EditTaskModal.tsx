@@ -387,14 +387,20 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
                   </Form.Item>
                   <Button
                     type="default"
-                    onClick={() => {
+                    onClick={async () => {
                       const id = form.getFieldValue('condition');
                       if (!id) {
                         setReadableText('请先填写条件ID');
                         return;
                       }
-                      const text = getReadableCondition(id);
-                      setReadableText(text || '未找到该条件');
+
+                      try {
+                        const text = await getReadableCondition(id);
+                        setReadableText(text || '未找到该条件');
+                      } catch (err) {
+                        console.error('条件查询失败', err);
+                        setReadableText('条件解析失败');
+                      }
                     }}
                   >
                     检查

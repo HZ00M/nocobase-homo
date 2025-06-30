@@ -7,13 +7,15 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Input, Modal, Button, Tooltip, Empty } from 'antd';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { Input, Modal, Button, Tooltip, Empty, Pagination, Spin } from 'antd';
 import { SearchOutlined, ExpandOutlined } from '@ant-design/icons';
 import { useAPIClient } from '@nocobase/client';
 import { TaskConditionUpload } from './TaskConditionUpload';
 import { useTaskConditions } from './TaskConditionContext';
 import { operatorLabels } from './useReadableConditions';
+import debounce from 'lodash.debounce';
+
 interface TaskCondition {
   id: number;
   operator: string;
@@ -29,44 +31,60 @@ interface TaskConditionOperatorProps {
 export const TaskConditionOperator: React.FC<TaskConditionOperatorProps> = ({ onSelectCondition }) => {
   const api = useAPIClient();
   const [searchText, setSearchText] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const { taskConditions, setTaskConditions } = useTaskConditions();
+  const [loading, setLoading] = useState(false);
+
+  const [taskList, setTaskList] = useState<TaskCondition[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+
+  const { setTaskConditions } = useTaskConditions();
+
+  const fetchConditions = async (page = 1, keyword = '') => {
+    setLoading(true);
+    const res = await api.resource('act_task_condition').list({
+      pageSize,
+      page,
+      filter: keyword
+        ? {
+            $or: [
+              { conditionType: { $contains: keyword } },
+              { operator: { $contains: keyword } },
+              { value: { $contains: keyword } },
+              { desc: { $contains: keyword } },
+            ],
+          }
+        : undefined,
+    });
+
+    const conditions = res?.data?.data || [];
+    setTaskList(conditions);
+    setTotal(res?.data?.meta?.count || 0);
+    setTaskConditions(conditions); // 同步全局
+    setCurrentPage(page);
+    setLoading(false);
+  };
+
+  // 防抖搜索
+  const debounceSearch = useCallback(
+    debounce((value: string) => {
+      setSearchKeyword(value);
+      fetchConditions(1, value);
+    }, 300),
+    [],
+  );
+
   useEffect(() => {
-    fetchConditions();
+    fetchConditions(currentPage, searchKeyword);
   }, []);
 
-  const fetchConditions = async () => {
-    const res = await api.resource('act_task_condition').list({ pageSize: 3000 });
-    const conditions = res?.data?.data;
-    setTaskConditions(conditions || []);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchText(value);
+    debounceSearch(value);
   };
-
-  const getMatchScore = (item: TaskCondition, keyword: string) => {
-    const lower = keyword.toLowerCase();
-    const exact = (v?: string) => v?.toLowerCase() === lower;
-    const partial = (v?: string) => v?.toLowerCase().includes(lower);
-
-    if (exact(item.conditionType)) return 0;
-    if (exact(item.operator)) return 1;
-    if (exact(item.value)) return 2;
-    if (exact(item.desc)) return 3;
-
-    if (partial(item.conditionType)) return 10;
-    if (partial(item.operator)) return 11;
-    if (partial(item.value)) return 12;
-    if (partial(item.desc)) return 13;
-
-    return Infinity;
-  };
-
-  const filtered = useMemo(() => {
-    if (!searchText) return taskConditions;
-    return [...taskConditions]
-      .map((item) => ({ item, score: getMatchScore(item, searchText) }))
-      .filter((entry) => entry.score !== Infinity)
-      .sort((a, b) => a.score - b.score)
-      .map((entry) => entry.item);
-  }, [searchText, taskConditions]);
 
   const renderItem = (item: TaskCondition, showFull = false) => {
     const tooltipContent = showFull ? (
@@ -114,56 +132,71 @@ export const TaskConditionOperator: React.FC<TaskConditionOperatorProps> = ({ on
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* 顶部固定部分 */}
+      {/* 顶部搜索 */}
       <div style={{ flexShrink: 0, display: 'flex', gap: 8, marginBottom: 8 }}>
         <Input
           allowClear
           placeholder="搜索"
           prefix={<SearchOutlined />}
           value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          onChange={handleSearchChange}
           style={{ flex: 1 }}
         />
         <Button icon={<ExpandOutlined />} type="text" onClick={() => setModalVisible(true)} />
       </div>
 
-      {/* 列表区域，占满剩余空间且内部滚动 */}
+      {/* 列表展示 */}
       <div
         style={{
           flex: 1,
           overflowY: 'auto',
-          paddingRight: 4, // 防止滚动条遮挡内容
+          paddingRight: 4,
         }}
       >
-        {filtered.length > 0 ? filtered.map((item) => renderItem(item)) : <Empty description="未找到匹配的条件" />}
+        {loading ? (
+          <Spin />
+        ) : taskList.length > 0 ? (
+          taskList.map((item) => renderItem(item))
+        ) : (
+          <Empty description="未找到匹配的条件" />
+        )}
       </div>
 
-      {/* 弹窗 */}
+      {/* 弹窗展示 */}
       <Modal
         title="条件元数据列表"
         open={modalVisible}
         footer={null}
         onCancel={() => setModalVisible(false)}
         width={800}
-        style={{ body: { padding: 0 } }}
       >
         <div style={{ padding: 16, display: 'flex', flexDirection: 'column', height: '80vh' }}>
-          <TaskConditionUpload onSuccess={fetchConditions} />
+          <TaskConditionUpload onSuccess={() => fetchConditions(currentPage, searchKeyword)} />
           <Input
             allowClear
             placeholder="搜索条件元数据"
             prefix={<SearchOutlined />}
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={handleSearchChange}
             style={{ marginBottom: 16, marginTop: 8 }}
           />
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {filtered.length > 0 ? (
-              filtered.map((item) => renderItem(item, true))
+            {loading ? (
+              <Spin />
+            ) : taskList.length > 0 ? (
+              taskList.map((item) => renderItem(item, true))
             ) : (
               <Empty description="未找到匹配的条件" />
             )}
           </div>
+          <Pagination
+            current={currentPage}
+            total={total}
+            pageSize={pageSize}
+            showSizeChanger={false}
+            onChange={(page) => fetchConditions(page, searchKeyword)}
+            style={{ marginTop: 16, textAlign: 'right' }}
+          />
         </div>
       </Modal>
     </div>

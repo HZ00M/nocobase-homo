@@ -449,4 +449,79 @@ export const checkRules: CheckRule[] = [
       return [];
     },
   },
+  {
+    name: '检查 reward 格式',
+    apply: (node) => {
+      const reward = node.data.reward;
+      if (!reward) return [];
+
+      // 定义正则，匹配格式如 "id1;count1,id2;count2,id3;count3"
+      // 规则：分号分割多段，每段由数字和逗号组成，数字至少一个
+      const pattern = /^(\d+(,\d+)*)(;(\d+(,\d+)*))*$/;
+
+      if (!pattern.test(reward)) {
+        return [
+          {
+            title: 'reward 格式错误',
+            message: `reward 字段格式应为“id1;count1,id2;count2,id3;count3”，例如 "5;5,4634;1,1;2500"，当前值：${reward}`,
+            level: CheckLevel.WARN,
+            relatedIds: [node.id],
+          },
+        ];
+      }
+      return [];
+    },
+  },
+  {
+    name: '时间配置生效检查',
+    apply: (node, allNodes) => {
+      const { startTime, endTime, parentTaskId } = node.data;
+      if (!startTime || !endTime) return [];
+
+      // 找父节点
+      const parent = allNodes.find((n) => n.data.taskId === parentTaskId);
+      if (!parent) return [];
+
+      // 父节点类型判断
+      if (parent.data.meta?.type !== TaskType.ScheduleTask.toString()) {
+        return [
+          {
+            title: '父节点类型非 ScheduleTask',
+            message: '父节点不是ScheduleTask类型，时间配置可能无法生效定时开启',
+            level: CheckLevel.WARN,
+            relatedIds: [node.id, parent.id],
+          },
+        ];
+      }
+
+      return [];
+    },
+  },
+  {
+    name: '缺失时间配置导致定时无法启动',
+    apply: (node, allNodes) => {
+      const { startTime, endTime, parentTaskId } = node.data;
+
+      // 若时间都配置了，不报错
+      if (startTime && endTime) return [];
+
+      // 查找父节点
+      const parent = allNodes.find((n) => n.data.taskId === parentTaskId);
+      if (!parent) return [];
+
+      // 父节点必须是 ScheduleTask 类型
+      if (parent.data.meta?.type === TaskType.ScheduleTask.toString()) {
+        return [
+          {
+            title: '时间配置缺失',
+            message: '父节点是 ScheduleTask 类型，当前节点未配置 startTime 或 endTime，将无法定时触发任务',
+            level: CheckLevel.ERROR,
+            relatedIds: [node.id, parent.id],
+          },
+        ];
+      }
+
+      return [];
+    },
+  },
 ];

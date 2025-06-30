@@ -34,6 +34,7 @@ const getCardStyle = (selected: boolean, highlight?: boolean): React.CSSProperti
   userSelect: 'none',
   cursor: 'pointer',
 });
+
 const getButtonStyle = (bgColor: string): React.CSSProperties => ({
   flex: '1 1 auto',
   padding: '6px 12px',
@@ -43,17 +44,18 @@ const getButtonStyle = (bgColor: string): React.CSSProperties => ({
   backgroundColor: bgColor,
   color: '#fff',
 });
+
 export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, id, selected }) => {
   const { nodes, setNodes, nodeOptions } = useTaskNodesContext();
   const { label, taskId, setNodeField, checkResult } = data;
+  const [showAllData, setShowAllData] = useState(false); // ⬅️ 展示全部字段
+
   const updateTaskIdInfo = (nodeId: string, fieldName: string, value: any) => {
     setNodes((curNodes) => {
-      // 找到当前节点
       const node = curNodes.find((n) => n.id === nodeId);
       if (!node) return curNodes;
       const oldValue = node.data[fieldName];
 
-      // 先更新当前节点字段
       const updatedNodes = curNodes.map((n) => {
         if (n.id === nodeId) {
           return {
@@ -66,6 +68,7 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
         }
         return n;
       });
+
       if (fieldName === 'taskId' && oldValue !== value) {
         return updatedNodes.map((n) => {
           const newData = { ...n.data };
@@ -91,6 +94,7 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
       return updatedNodes;
     });
   };
+
   return (
     <div
       style={getCardStyle(selected, data.highlight)}
@@ -105,15 +109,17 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
         isConnectable={isConnectable}
         style={{
           ...handleStyle,
-          top: -6, // 微调位置避免与边框重叠
+          top: -6,
         }}
       />
+
       <CheckIcon
         result={checkResult}
         onClick={(id) => {
           data.onCheck?.(id);
         }}
       />
+
       <div
         style={{
           fontSize: 16,
@@ -141,9 +147,7 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
           <EditableField
             value={taskId}
             fieldName="taskId"
-            onSave={(fieldName, val) => {
-              updateTaskIdInfo(id, fieldName, val);
-            }}
+            onSave={(fieldName, val) => updateTaskIdInfo(id, fieldName, val)}
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -154,7 +158,6 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
           <strong style={{ whiteSpace: 'nowrap' }}>开启类型：</strong>
           <span>{TimeStartTypeOptions.find((opt) => opt.value === data.timeType)?.label || '未知'}</span>
         </div>
-
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <strong style={{ whiteSpace: 'nowrap' }}>开始时间：</strong>
           <span>{calcOffsetDates(data.timeType, data.startTime, data.offsetTime)}</span>
@@ -174,26 +177,12 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
             fieldName={'promiseTaskId'}
             options={nodeOptions}
             onSave={(fieldName, val) => setNodeField?.(id, fieldName, val)}
-          ></EditableSelect>
-          {/*<span>{data.promiseTaskId || '无'}</span>*/}
+          />
         </div>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        <button
-          style={{
-            flex: '1 1 auto',
-            padding: '6px 12px',
-            borderRadius: 4,
-            border: 'none',
-            cursor: 'pointer',
-            backgroundColor: '#52c41a', // 绿色
-            color: '#fff',
-          }}
-          onClick={() => {
-            data.onAddChild?.(id);
-          }}
-        >
+        <button style={getButtonStyle('#52c41a')} onClick={() => data.onAddChild?.(id)}>
           添加
         </button>
         <button
@@ -210,7 +199,7 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
         </button>
         <button
           style={{
-            ...getButtonStyle('#faad14'), // 明亮的黄色
+            ...getButtonStyle('#faad14'),
             color: '#000',
             fontWeight: 500,
             border: '1px solid #d48806',
@@ -224,6 +213,25 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
           {data.collapsed ? '展开' : '折叠'}
         </button>
       </div>
+
+      {showAllData && (
+        <div
+          style={{
+            marginTop: 8,
+            backgroundColor: '#f7f7f7',
+            border: '1px solid #d9d9d9',
+            padding: 8,
+            borderRadius: 4,
+            fontSize: 12,
+            color: '#444',
+            maxHeight: 200,
+            overflowY: 'auto',
+            wordBreak: 'break-word',
+          }}
+        >
+          <pre style={{ margin: 0 }}>{JSON.stringify(data, null, 2)}</pre>
+        </div>
+      )}
 
       <Handle
         type="source"
@@ -246,10 +254,6 @@ const handleStyle: React.CSSProperties = {
   borderRadius: '50%',
   boxShadow: '0 0 4px rgba(0, 0, 0, 0.15)',
   transition: 'transform 0.2s',
-};
-
-const handleHoverStyle: React.CSSProperties = {
-  transform: 'scale(1.3)',
 };
 
 export default TaskNode;
