@@ -23,6 +23,7 @@ import { DataSourcesRolesResourcesModel } from './models/connections-roles-resou
 import { DataSourcesRolesResourcesActionModel } from './models/connections-roles-resources-action';
 import { DataSourceModel } from './models/data-source';
 import { DataSourcesRolesModel } from './models/data-sources-roles-model';
+import { mergeRole } from '@nocobase/acl';
 
 type DataSourceState = 'loading' | 'loaded' | 'loading-failed' | 'reloading' | 'reloading-failed';
 
@@ -592,6 +593,31 @@ export class PluginDataSourceManagerServer extends Plugin {
       },
     );
 
+    this.app.db.on('dataSourcesRolesResourcesScopes.afterSaveWithAssociations', async (model, options) => {
+      const { transaction } = options;
+      const dataSourcesRolesResourcesActions: DataSourcesRolesResourcesActionModel[] = await this.app.db
+        .getRepository('dataSourcesRolesResourcesActions')
+        .find({
+          filter: { scopeId: model.get('id') },
+          transaction,
+        });
+      const rolesRolesResourceIds = dataSourcesRolesResourcesActions.map((x) => x.get('rolesResourceId'));
+      const dataSourcesRolesResources: DataSourcesRolesResourcesModel[] = await this.app.db
+        .getRepository('dataSourcesRolesResources')
+        .find({
+          filter: {
+            id: rolesRolesResourceIds,
+          },
+          transaction,
+        });
+      for (const instance of dataSourcesRolesResources) {
+        await this.app.db.emitAsync(`dataSourcesRolesResources.afterSaveWithAssociations`, instance, {
+          ...options,
+          transaction,
+        });
+      }
+    });
+
     this.app.db.on(
       'dataSourcesRolesResourcesActions.afterUpdateWithAssociations',
       async (model: DataSourcesRolesResourcesActionModel, options) => {
@@ -700,7 +726,7 @@ export class PluginDataSourceManagerServer extends Plugin {
       await next();
       const { resourceName, actionName } = action.params;
       if (resourceName === 'roles' && actionName == 'check') {
-        const roleName = ctx.state.currentRole;
+        const roleNames = ctx.state.currentRoles;
         const dataSources = await ctx.db.getRepository('dataSources').find();
 
         ctx.bodyMeta = {
@@ -716,20 +742,8 @@ export class PluginDataSourceManagerServer extends Plugin {
             }
 
             const aclInstance = dataSource.acl;
-            const roleInstance = aclInstance.getRole(roleName);
-
-            const dataObj = {
-              strategy: {},
-              resources: roleInstance ? [...roleInstance.resources.keys()] : [],
-              actions: {},
-            };
-
-            if (roleInstance) {
-              const data = roleInstance.toJSON();
-              dataObj['name'] = data['name'];
-              dataObj['strategy'] = data['strategy'];
-              dataObj['actions'] = data['actions'];
-            }
+            const roleInstances = aclInstance.getRoles(roleNames);
+            const dataObj = mergeRole(roleInstances);
 
             carry[dataSourceModel.get('key')] = dataObj;
 
