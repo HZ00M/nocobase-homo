@@ -90,7 +90,7 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({
   }
 
   // 显示文字部分
-  const selectedLabel = options.find((o) => o.value === value)?.label || '（点击选择）';
+  const selectedLabel = options.find((o) => o.value === value)?.label || value;
 
   return (
     <div

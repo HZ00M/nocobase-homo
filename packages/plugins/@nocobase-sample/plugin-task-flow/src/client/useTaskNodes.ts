@@ -417,7 +417,10 @@ export function useTaskNodes(): TaskNodeHook {
           isRootOfTemplate && selectedNodeId
             ? parentNode?.data.taskId || ''
             : taskIdMap.get(node.data.parentTaskId!) || '';
-
+        const oldPromiseTaskId = node.data.promiseTaskId;
+        const newPromiseTaskId = tplTaskIdSet.has(oldPromiseTaskId)
+          ? taskIdMap.get(oldPromiseTaskId) || ''
+          : oldPromiseTaskId;
         const taskMeta = taskMetasRef.current.find((meta) => meta.value === node.data.nodeType);
 
         const shouldHide = parentCollapsed && !isRootOfTemplate;
@@ -434,6 +437,7 @@ export function useTaskNodes(): TaskNodeHook {
             taskId: newTaskId,
             parentId: newParentId,
             parentTaskId: newParentTaskId,
+            promiseTaskId: newPromiseTaskId,
             meta: taskMeta ?? {
               value: 'Task',
               type: 'unknown',
