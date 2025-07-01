@@ -7,9 +7,9 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import { useState, useRef, useEffect, useMemo } from 'react';
-import type { TaskMeta, TaskData } from './types';
-import ReactFlow, { Connection, useNodesState, useEdgesState, addEdge, Node, Edge, ReactFlowInstance } from 'reactflow';
+import React, { useMemo, useRef, useState } from 'react';
+import type { TaskData, TaskMeta } from './types';
+import { Connection, Edge, Node, ReactFlowInstance, useEdgesState, useNodesState } from 'reactflow';
 import { message, Modal } from 'antd';
 import { useResource } from '@nocobase/client';
 import { TaskIdGenerator } from './TaskIdGenerator';
@@ -18,9 +18,30 @@ import { deepMergeSources } from './utils';
 import { taskNodeTemplate } from './constants';
 import { useTaskMetas } from './TaskMetaContext';
 
-export type UseTaskNodes = ReturnType<typeof useTaskNodes>;
+export interface TaskNodeHook {
+  nodes: Node<TaskData>[];
+  setNodes: React.Dispatch<React.SetStateAction<Node<TaskData>[]>>;
+  edges: Edge[];
+  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
+  addNewTask: (parentId?: string, taskMeta?: TaskMeta) => void;
+  onNodesChange: ReturnType<typeof useNodesState>[2];
+  onEdgesChange: ReturnType<typeof useEdgesState>[2];
+  layoutPyramid: (allNodes: Node[]) => Node[];
+  onNodeSelect: (id: string | null) => void;
+  getEnhancedNodes: () => Node<TaskData>[];
+  importTemplateById: (templateId: string) => Promise<void>;
+  resetNodeInfo: () => void;
+  onConnect: (connection: Connection) => void;
+  onInit: (instance: ReactFlowInstance) => void;
+  selectedNodeId: string | null;
+  editingNode: Node | null;
+  onOpenEditModal: (nodeId: string) => void;
+  setEditingNode: React.Dispatch<React.SetStateAction<Node | null>>;
+  setNodeField: (nodeId: string, fieldName: string, value: string) => void;
+  nodeOptions: { label: string; value: string }[];
+}
 
-export function useTaskNodes() {
+export function useTaskNodes(): TaskNodeHook {
   const idGenRef = useRef<TaskIdGenerator>(new TaskIdGenerator());
   const { taskMetasRef } = useTaskMetas();
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance>();
@@ -148,6 +169,24 @@ export function useTaskNodes() {
           taskId: taskId,
           parentTaskId: parentNode?.data?.taskId || '',
           nodeType: taskMeta.value,
+          // 补全必要字段，类型要与 TaskData 匹配
+          activityId: parentNode?.data?.activityId || '',
+          promiseTaskId: '',
+          taskType: taskMeta?.type || '', // 有默认值就用，没有就空字符串
+          targetProcess: 0,
+          weight: 0,
+          condition: '',
+          rewardType: '',
+          reward: '',
+          desc: taskMeta.desc || '',
+          sortId: 0,
+          timeType: 0,
+          startTime: 0,
+          endTime: 0,
+          startTimeStr: '',
+          endTimeStr: '',
+          offsetTime: 0,
+          extraInfo: {}, // ✅ 不要使用 undefined
         },
       });
       return layoutPyramid([...updatedNodes, newNode]);

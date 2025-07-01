@@ -8,8 +8,8 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Input, Modal, Button, Tooltip, Empty } from 'antd';
-import { SearchOutlined, ExpandOutlined } from '@ant-design/icons';
+import { Button, Empty, Input, Modal, Tooltip } from 'antd';
+import { ExpandOutlined, SearchOutlined } from '@ant-design/icons';
 import { useAPIClient } from '@nocobase/client';
 import { TaskMeta } from './types';
 import { TaskMetaUpload } from './TaskMetaUpload';
@@ -31,6 +31,10 @@ export const TaskMetaOperator: React.FC<TaskMetaSelectorProps> = ({ onAddTask })
     fetchTaskMeta();
     fetchAwardMeta();
   }, []);
+  const taskTypeOptions = taskMetas.map((meta) => ({
+    label: meta.desc || meta.value,
+    value: meta.value,
+  }));
   const fetchTaskMeta = async () => {
     const res = await api
       .resource('act_task_type')

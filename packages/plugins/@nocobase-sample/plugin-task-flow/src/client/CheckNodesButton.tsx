@@ -9,7 +9,6 @@
 
 import React from 'react';
 import { Button } from 'antd';
-import { WarningOutlined } from '@ant-design/icons';
 import type { Node } from 'reactflow';
 import type { TaskData } from './types';
 import { CheckItem } from './CheckIcon';

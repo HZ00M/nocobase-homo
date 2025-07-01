@@ -8,12 +8,11 @@
  */
 
 // checkRules.ts
-import { CheckLevel, CheckItem } from './CheckIcon';
+import { CheckItem, CheckLevel } from './CheckIcon';
 import type { Node } from 'reactflow';
 import type { TaskData } from './types';
-import { useTaskMetas } from './TaskMetaContext';
-import { useAwardMetas } from './AwardMetaContext';
 import { TaskType } from './constants';
+
 export interface CheckRule {
   name: string;
   apply: (node: Node<TaskData>, allNodes: Node<TaskData>[]) => CheckItem[];

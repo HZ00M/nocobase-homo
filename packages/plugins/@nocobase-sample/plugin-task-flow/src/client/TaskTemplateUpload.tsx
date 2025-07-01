@@ -9,7 +9,7 @@
 
 import React, { useState } from 'react';
 import { InboxOutlined } from '@ant-design/icons';
-import { Modal, Upload, Typography, message, Checkbox, Input, Form, Button } from 'antd';
+import { Checkbox, Form, Input, message, Modal, Typography, Upload } from 'antd';
 import { useResource } from '@nocobase/client';
 import { deepMergeSources } from './utils';
 import { taskNodeTemplate } from './constants';

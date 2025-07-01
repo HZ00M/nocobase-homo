@@ -7,11 +7,9 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import React from 'react';
-import { Tooltip, Popover, Tag } from 'antd';
+import React, { useState } from 'react';
+import { Popover, Tag, Tooltip } from 'antd';
 import { CheckCircleOutlined, ExclamationCircleOutlined, WarningOutlined } from '@ant-design/icons';
-import { useState } from 'react';
-import type { UseTaskNodes } from './useTaskNodes';
 
 export enum CheckLevel {
   SUCCESS = 0,

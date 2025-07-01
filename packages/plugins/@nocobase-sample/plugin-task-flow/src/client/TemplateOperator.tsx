@@ -7,20 +7,17 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { Button, Modal, Form, Input, message, Tooltip, Empty } from 'antd';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Button, Empty, Form, Input, message, Modal, Popconfirm, Tooltip } from 'antd';
 import {
-  SearchOutlined,
-  ExpandOutlined,
-  EditOutlined,
   DeleteOutlined,
+  EditOutlined,
   ExclamationCircleOutlined,
+  ExpandOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import { useResource } from '@nocobase/client';
 import { TaskTemplateUpload } from './TaskTemplateUpload';
-import { useTaskMetas } from './TaskMetaContext';
-import { TaskMeta } from './types';
-import { Popconfirm } from 'antd';
 
 interface Template {
   id: string;

@@ -7,13 +7,14 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import React, { createContext, useContext, useRef, useState } from 'react';
+import React, { createContext, useContext, useRef, useState, useMemo } from 'react';
 import type { TaskMeta } from './types';
 
 export const TaskMetaContext = createContext<{
   taskMetas: TaskMeta[];
   taskMetasRef: React.MutableRefObject<TaskMeta[]>;
   setTaskMetas: (v: TaskMeta[]) => void;
+  options: { label: string; value: string }[];
 }>(null!);
 
 export const TaskMetaProvider: React.FC = ({ children }) => {
@@ -25,8 +26,15 @@ export const TaskMetaProvider: React.FC = ({ children }) => {
     _setTaskMetas(v);
   };
 
+  const options = useMemo(() => {
+    return taskMetas.map((meta) => ({
+      label: meta.value,
+      value: meta.value,
+    }));
+  }, [taskMetas]);
+
   return (
-    <TaskMetaContext.Provider value={{ taskMetas: taskMetas, taskMetasRef, setTaskMetas }}>
+    <TaskMetaContext.Provider value={{ taskMetas, taskMetasRef, setTaskMetas, options }}>
       {children}
     </TaskMetaContext.Provider>
   );

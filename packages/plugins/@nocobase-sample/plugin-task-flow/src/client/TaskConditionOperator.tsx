@@ -7,9 +7,9 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Input, Modal, Button, Tooltip, Empty, Pagination, Spin } from 'antd';
-import { SearchOutlined, ExpandOutlined } from '@ant-design/icons';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Button, Empty, Input, Modal, Pagination, Spin, Tooltip } from 'antd';
+import { ExpandOutlined, SearchOutlined } from '@ant-design/icons';
 import { useAPIClient } from '@nocobase/client';
 import { TaskConditionUpload } from './TaskConditionUpload';
 import { useTaskConditions } from './TaskConditionContext';

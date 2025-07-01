@@ -8,9 +8,9 @@
  */
 
 import React, { createContext, useContext } from 'react';
-import { useTaskNodes } from './useTaskNodes';
+import { TaskNodeHook, useTaskNodes } from './useTaskNodes';
 
-const TaskNodesContext = createContext<ReturnType<typeof useTaskNodes> | null>(null);
+const TaskNodesContext = createContext<TaskNodeHook | null>(null);
 
 export const TaskNodesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const taskNodes = useTaskNodes();
@@ -19,7 +19,7 @@ export const TaskNodesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 };
 
 // 用于任何组件内部访问
-export function useTaskNodesContext() {
+export function useTaskNodesContext(): TaskNodeHook {
   const context = useContext(TaskNodesContext);
   if (!context) {
     throw new Error('useTaskNodesContext must be used within a TaskNodesProvider');

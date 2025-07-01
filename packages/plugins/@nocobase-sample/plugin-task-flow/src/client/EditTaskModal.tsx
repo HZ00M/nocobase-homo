@@ -7,35 +7,20 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
-import {
-  Tooltip,
-  message,
-  Card,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  DatePicker,
-  Row,
-  Col,
-  Space,
-  Button,
-} from 'antd';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Button, Card, Col, DatePicker, Form, Input, InputNumber, message, Modal, Row, Select, Space } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import type { Node } from 'reactflow';
-import type { Task, TaskData, TaskMeta } from './types';
+import type { TaskData, TaskMeta } from './types';
 import dayjs from 'dayjs';
-import { TimeType, TimeStartTypeOptions } from './constants';
+import { TimeStartTypeOptions, TimeType } from './constants';
 import { useTaskMetas } from './TaskMetaContext';
 import { useAwardMetas } from './AwardMetaContext';
 import { formatSecondsToDHMS } from './utils';
 import { TaskType, TaskTypeMeta } from './TaskTypeEnums';
-import { ConditionSelector } from './TaskConditionSelector';
+import { useReadableConditions } from './useReadableConditions';
 
 const { RangePicker } = DatePicker;
-import { operatorLabels, useReadableConditions } from './useReadableConditions';
 
 interface EditTaskModalProps {
   visible: boolean;

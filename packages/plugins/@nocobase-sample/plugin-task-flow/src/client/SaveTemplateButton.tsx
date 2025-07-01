@@ -8,14 +8,15 @@
  */
 
 import React, { useState } from 'react';
-import { Button, Modal, Form, Input, message } from 'antd';
+import { Button, Form, Input, message, Modal } from 'antd';
 
 import { useResource } from '@nocobase/client';
 import { transformNodesForSave } from './utils';
+
 interface SaveTemplateButtonProps {
   nodes: any[];
   edges: any[];
-  tmplFetchRef?: () => void;
+  tmplFetchRef?: React.RefObject<() => void>;
 }
 
 export const SaveTemplateButton: React.FC<SaveTemplateButtonProps> = ({ nodes, edges, tmplFetchRef }) => {

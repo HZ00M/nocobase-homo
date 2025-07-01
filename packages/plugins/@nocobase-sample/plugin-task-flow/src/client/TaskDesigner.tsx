@@ -7,19 +7,16 @@
  * For more information, please refer to: https://www.nocobase.com/agreement.
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import ReactFlow, { Background, Controls, MiniMap, NodeChange, OnNodesChange } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useFieldSchema } from '@formily/react';
-import { message, Modal, Button } from 'antd';
+import { message, Modal } from 'antd';
 import { EditTaskModal } from './EditTaskModal';
 import { TaskNode } from './TaskNode';
-import { TaskMetaOperator } from './TaskMetaOperator';
-import { TemplateOperator } from './TemplateOperator';
 import { FlowControl } from './FlowControl';
 import { useTaskNodesContext } from './TaskNodesContext';
 import { getNodeColor } from './CheckIcon';
-import TaskSidebarPanel from './TaskSidebarPanel';
 import TaskSidebar from './TaskSidebarPanel'; // 引入你的枚举
 const nodeTypes = { stacked: TaskNode };
 export const TaskDesigner: React.FC = () => {

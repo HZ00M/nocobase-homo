@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from 'react';
-import { Upload, message, Typography } from 'antd';
+import { message, Typography, Upload } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import { useAPIClient } from '@nocobase/client';
 

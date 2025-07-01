@@ -10,20 +10,10 @@
 import React from 'react';
 import 'reactflow/dist/style.css';
 import { uid } from '@formily/shared';
-import {
-  DataBlockProvider,
-  ExtendCollectionsProvider,
-  ISchema,
-  SchemaComponent,
-  SchemaInitializerItemType,
-  SchemaSettings,
-  useCollectionRecord,
-  useDataBlockRequest,
-  useSchemaInitializer,
-} from '@nocobase/client';
-import { TaskDesigner } from './TaskDesigner';
+import { ISchema, SchemaInitializerItemType, SchemaSettings, useSchemaInitializer } from '@nocobase/client';
 import { useT } from './locale';
 import { TaskFlowEditor } from './TaskFlowEditor';
+
 export const FlowDataComponentName = 'TaskDataComponent';
 export const DataSettings = new SchemaSettings({
   name: `blockSettings:${FlowDataComponentName}`,

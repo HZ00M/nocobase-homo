@@ -8,7 +8,7 @@
  */
 
 import { Plugin } from '@nocobase/client';
-import { TaskDataComponent, DataInitializerItem, DataSettings, FlowDataComponentName } from './FlowDataComponent';
+import { DataInitializerItem, DataSettings, FlowDataComponentName, TaskDataComponent } from './FlowDataComponent';
 
 export class PluginLogicFlowTestClient extends Plugin {
   async afterAdd() {}
