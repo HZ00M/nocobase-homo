@@ -50,6 +50,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({ value, fieldName, 
       <div style={containerStyle}>
         <Input
           {...inputProps}
+          size="small"
           autoFocus
           value={tempValue}
           style={inputStyle}
