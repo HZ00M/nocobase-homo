@@ -483,7 +483,7 @@ export const checkRules: CheckRule[] = [
       if (!parent) return [];
 
       // 父节点类型判断
-      if (parent.data.meta?.type !== TaskType.ScheduleTask.toString()) {
+      if (parent.data.meta?.type !== TaskType[TaskType.ScheduleTask]) {
         return [
           {
             title: '父节点类型非 ScheduleTask',
@@ -510,7 +510,7 @@ export const checkRules: CheckRule[] = [
       if (!parent) return [];
 
       // 父节点必须是 ScheduleTask 类型
-      if (parent.data.meta?.type === TaskType.ScheduleTask.toString()) {
+      if (parent.data.meta?.type === TaskType[TaskType.ScheduleTask]) {
         return [
           {
             title: '时间配置缺失',
