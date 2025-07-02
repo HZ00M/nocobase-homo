@@ -227,64 +227,74 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
     }, 100);
     return () => clearTimeout(timeout);
   }, [timeType, startTime, endTime, timeRange, offsetTime]);
+  const submitForm = async (values: any) => {
+    const { extraInfo, ...rest } = values;
+    const dynamicEntries = (extraInfo?.dynamic || []).reduce((acc: Record<string, string>, { key, value }) => {
+      if (key) acc[key] = value;
+      return acc;
+    }, {});
+    let finalStartTime: number | undefined;
+    let finalEndTime: number | undefined;
+
+    if (isDayType(timeType)) {
+      finalStartTime = Number(startTime ?? 0);
+      finalEndTime = Number(endTime ?? 0);
+    } else {
+      if (Array.isArray(timeRange) && timeRange.length === 2) {
+        finalStartTime = dayjs(timeRange[0]).unix();
+        finalEndTime = dayjs(timeRange[1]).unix();
+      }
+    }
+
+    const fixedEntries = extraInfo?.fixed || {};
+    const extraInfoObj = {
+      ...fixedEntries,
+      ...dynamicEntries,
+    };
+
+    const updatedNode: Node<TaskData> = {
+      ...node!,
+      data: {
+        ...node!.data,
+        ...rest,
+        timeType,
+        startTime: finalStartTime,
+        endTime: finalEndTime,
+        extraInfo: extraInfoObj,
+      },
+    };
+
+    onSave(updatedNode);
+  };
 
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      const { extraInfo, ...rest } = values;
-      // 合并额外信息
-      const dynamicEntries = (extraInfo?.dynamic || []).reduce((acc: Record<string, string>, { key, value }) => {
-        if (key) acc[key] = value;
-        return acc;
-      }, {});
-      let finalStartTime: number | undefined;
-      let finalEndTime: number | undefined;
-
-      if (isDayType(timeType)) {
-        // 天数类型：直接使用 startTime/endTime 数值
-        finalStartTime = Number(startTime ?? 0);
-        finalEndTime = Number(endTime ?? 0);
-      } else {
-        // 时间戳类型：将 timeRange 转为秒级时间戳
-        if (Array.isArray(timeRange) && timeRange.length === 2) {
-          finalStartTime = dayjs(timeRange[0]).unix();
-          finalEndTime = dayjs(timeRange[1]).unix();
-        }
-      }
-      const fixedEntries = extraInfo?.fixed || {};
-
-      const extraInfoObj = {
-        ...fixedEntries,
-        ...dynamicEntries,
-      };
-
-      const updatedNode: Node<TaskData> = {
-        ...node!,
-        data: {
-          ...node!.data,
-          ...rest,
-          timeType,
-          startTime: finalStartTime,
-          endTime: finalEndTime,
-          extraInfo: extraInfoObj,
-        },
-      };
-      onSave(updatedNode);
+      await submitForm(values);
     } catch (err: any) {
       if (err.errorFields && err.errorFields.length > 0) {
-        const firstError = err.errorFields[0];
-        message.error(firstError.errors?.[0] || '表单验证失败');
+        Modal.confirm({
+          title: '部分字段未填写',
+          content: '存在未填写的必填项，是否仍然保存？',
+          onOk: async () => {
+            const values = form.getFieldsValue(); // 不再用 validateFields，直接取当前值
+            await submitForm(values);
+          },
+          okText: '强制保存',
+          cancelText: '返回修改',
+        });
       } else {
         message.error('表单验证失败，请检查输入');
+        console.warn('Validation failed:', err);
       }
-      console.warn('Validation failed:', err);
     }
   };
+
   const getTimeFieldItem = (timeType: number | undefined, requiredKeys: string[]) => {
     const isRequiredStart = requiredKeys.includes('startTime');
     const isRequiredEnd = requiredKeys.includes('endTime');
     return (
-      <Form.Item label="时间设置" required>
+      <Form.Item label="时间设置">
         {isDayType(timeType) ? (
           <Input.Group compact style={{ display: 'flex' }}>
             <Form.Item
@@ -303,7 +313,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
             </Form.Item>
           </Input.Group>
         ) : (
-          <Form.Item name="timeRange" noStyle rules={[{ required: true, message: '请选择时间范围' }]}>
+          <Form.Item name="timeRange" noStyle rules={[{ required: false, message: '请选择时间范围' }]}>
             <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: '100%' }} />
           </Form.Item>
         )}
