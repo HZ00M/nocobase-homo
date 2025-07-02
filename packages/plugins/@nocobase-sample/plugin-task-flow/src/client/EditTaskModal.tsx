@@ -57,6 +57,10 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
       form.resetFields();
       setExtraInfoFields([]);
       setRequiredKeys([]);
+      setReadableText('');
+      setOffsetDisplay('-');
+      form.setFieldValue(['extraInfo', 'dynamic'], []);
+      form.setFieldValue(['extraInfo', 'fixed'], {});
     }
   }, [visible]);
   const nodeTypeOptions = taskMetas.map((item) => ({
@@ -286,14 +290,14 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
             <Form.Item
               name="startTime"
               noStyle
-              rules={isRequiredStart ? [{ required: true, message: '开始天数必填' }] : []}
+              rules={isRequiredStart ? [{ required: false, message: '开始天数必填' }] : []}
             >
               <InputNumber min={0} style={{ width: '50%' }} placeholder="开始天（偏移）" />
             </Form.Item>
             <Form.Item
               name="endTime"
               noStyle
-              rules={isRequiredEnd ? [{ required: true, message: '结束天数必填' }] : []}
+              rules={isRequiredEnd ? [{ required: false, message: '结束天数必填' }] : []}
             >
               <InputNumber min={0} style={{ width: '50%' }} placeholder="结束天（偏移）" />
             </Form.Item>
@@ -474,14 +478,14 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ visible, node, onS
                         <Form.Item
                           {...restField}
                           name={[name, 'key']}
-                          rules={[{ required: true, message: '请输入字段名' }]}
+                          rules={[{ required: false, message: '请输入字段名' }]}
                         >
                           <Input placeholder="字段名" />
                         </Form.Item>
                         <Form.Item
                           {...restField}
                           name={[name, 'value']}
-                          rules={[{ required: true, message: '请输入字段值' }]}
+                          rules={[{ required: false, message: '请输入字段值' }]}
                         >
                           <Input placeholder="字段值" />
                         </Form.Item>

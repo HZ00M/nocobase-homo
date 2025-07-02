@@ -17,6 +17,7 @@ export class PluginTaskFlowServer extends Plugin {
   async load() {
     this.app.acl.allow('act_task_type', '*', 'public');
     this.app.acl.allow('act_task_flow', '*', 'public');
+    this.app.acl.allow('act_task_condition', '*', 'public');
     // ✅ 注册 REST 资源接口
     for (const name of ['act_task_flow', 'act_task_type', 'act_task_condition']) {
       this.app.resource({ name });
