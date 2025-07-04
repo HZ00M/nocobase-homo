@@ -16,12 +16,13 @@ interface Option {
 }
 
 interface EditableSelectProps {
-  value: string; // 当前选中的 value
+  value: string;
   fieldName: string;
-  options: Option[]; // 选择列表
+  options: Option[];
   onSave: (fieldName: string, value: string) => void;
   style?: React.CSSProperties;
   placeholder?: string;
+  emptyLabel?: string; // 自定义空值时显示的 label
 }
 
 export const EditableSelect: React.FC<EditableSelectProps> = ({
@@ -30,7 +31,8 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({
   options,
   onSave,
   style,
-  placeholder,
+  placeholder = '请选择',
+  emptyLabel = '—', // 默认空值 label 为横线
 }) => {
   const [editing, setEditing] = useState(false);
   const [tempValue, setTempValue] = useState(value);
@@ -61,36 +63,27 @@ export const EditableSelect: React.FC<EditableSelectProps> = ({
           showSearch
           placeholder={placeholder}
           options={options}
-          value={tempValue || undefined}
+          value={tempValue || undefined} // 关键修改点：避免空字符串导致不匹配
           style={{ flex: 1 }}
           onChange={(val) => {
             setTempValue(val);
             saveAndExit(val);
           }}
           onBlur={() => {
-            // 如果未选择，则取消编辑
-            if (!tempValue) {
-              cancelEdit();
-            }
+            if (!tempValue) cancelEdit();
           }}
           onDropdownVisibleChange={(open) => {
-            // 关闭下拉时如果没有选中则取消编辑
-            if (!open && !tempValue) {
-              cancelEdit();
-            }
+            if (!open && !tempValue) cancelEdit();
           }}
           filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
           allowClear
-          onClear={() => {
-            saveAndExit('');
-          }}
+          onClear={() => saveAndExit('')}
         />
       </div>
     );
   }
 
-  // 显示文字部分
-  const selectedLabel = options.find((o) => o.value === value)?.label || value;
+  const selectedLabel = options.find((o) => o.value === value)?.label || emptyLabel;
 
   return (
     <div

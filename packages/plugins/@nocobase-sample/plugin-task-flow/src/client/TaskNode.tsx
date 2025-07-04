@@ -239,16 +239,17 @@ export const TaskNode: React.FC<NodeProps<TaskData>> = ({ data, isConnectable, i
           </span>
         </div>
 
-        {/* 前置任务ID */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <strong style={leftLabelStyle}>前置任务ID：</strong>
-          <div style={rightContentStyle} title={data.promiseTaskId || ''}>
+          <div style={{ ...rightContentStyle }} title={taskId}>
             <EditableSelect
-              value={data.promiseTaskId}
-              fieldName={'promiseTaskId'}
+              value={data.promiseTaskId} // 这里需要根据实际情况设置初始值
+              fieldName="promiseTaskId"
               options={nodeOptions}
               onSave={(fieldName, val) => setNodeField?.(id, fieldName, val)}
-              style={{ width: '100%', border: 'none', backgroundColor: 'transparent', padding: 0 }}
+              emptyLabel="未设置前置任务"
+              placeholder="请选择前置任务"
+              style={{ width: '100%' }}
             />
           </div>
         </div>
